@@ -5,8 +5,8 @@ import { FaUser, FaShoppingCart, FaSearch, FaBolt, FaSignInAlt, FaUserPlus, FaSi
 import { useState } from "react";
 
 export const Navbar = () => {
-  const { getCartCount } = useCart();
-  const cartCount = getCartCount();
+  const cart = useCart();
+  const cartCount = cart?.getCartCount?.() || 0;
   const navigate = useNavigate();
   const { isAuthenticated, user, logout } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -43,13 +43,13 @@ export const Navbar = () => {
             >
               Inicio
             </NavLink>
-            <NavLink to="/products" className="hover:text-blue-600">
+            <NavLink to="/cliente/productos" className="hover:text-blue-600">
               Productos
             </NavLink>
-            <NavLink to="/orders" className="hover:text-blue-600">
+            <NavLink to="/cliente/ordenes" className="hover:text-blue-600">
               Mis Pedidos
             </NavLink>
-            <NavLink to="/profile" className="hover:text-blue-600">
+            <NavLink to="/cliente/perfil" className="hover:text-blue-600">
               Perfil
             </NavLink>
           </nav>
@@ -91,7 +91,7 @@ export const Navbar = () => {
             <button className="hover:text-blue-600">
               <FaSearch className="w-5 h-5" />
             </button>
-            <Link to="/cart" className="relative hover:text-blue-600">
+            <Link to="/cliente/carrito" className="relative hover:text-blue-600">
               <FaShoppingCart className="w-5 h-5" />
               {cartCount > 0 && (
                 <span className="absolute -top-2 -right-3 bg-blue-600 text-white text-xs rounded-full px-1.5 py-0.5 font-bold">
@@ -121,13 +121,13 @@ export const Navbar = () => {
             >
               Inicio
             </NavLink>
-            <NavLink to="/products" className="text-gray-700 hover:text-blue-600" onClick={() => setMobileMenuOpen(false)}>
+            <NavLink to="/cliente/productos" className="text-gray-700 hover:text-blue-600" onClick={() => setMobileMenuOpen(false)}>
               Productos
             </NavLink>
-            <NavLink to="/orders" className="text-gray-700 hover:text-blue-600" onClick={() => setMobileMenuOpen(false)}>
+            <NavLink to="/cliente/ordenes" className="text-gray-700 hover:text-blue-600" onClick={() => setMobileMenuOpen(false)}>
               Mis Pedidos
             </NavLink>
-            <NavLink to="/profile" className="text-gray-700 hover:text-blue-600" onClick={() => setMobileMenuOpen(false)}>
+            <NavLink to="/cliente/perfil" className="text-gray-700 hover:text-blue-600" onClick={() => setMobileMenuOpen(false)}>
               Perfil
             </NavLink>
             

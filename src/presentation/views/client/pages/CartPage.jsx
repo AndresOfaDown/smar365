@@ -1,13 +1,13 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import { toast } from "react-toastify";
-import { FaTrash, FaShoppingCart, FaArrowLeft } from "react-icons/fa";
+import { FaTrash, FaShoppingCart, FaArrowLeft, FaBox } from "react-icons/fa";
 import { useCart } from "../context/CartContext";
 
 export const CartPage = () => {
   const { cartItems, removeFromCart, updateQuantity, getSubtotal, clearCart } = useCart();
 
-  if (cartItems.length === 0) {
+  if (!cartItems || cartItems.length === 0) {
     return (
       <div className="container mx-auto p-10 text-center min-h-screen flex items-center justify-center">
         <div>
@@ -17,7 +17,7 @@ export const CartPage = () => {
             Parece que aún no has agregado productos. ¡Explora nuestro catálogo!
           </p>
           <Link
-            to="/"
+            to="/cliente/productos"
             className="inline-flex items-center gap-2 py-3 px-6 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-semibold transition"
           >
             <FaArrowLeft />
@@ -57,15 +57,19 @@ export const CartPage = () => {
               >
                 {/* Imagen */}
                 <div className="w-24 h-24 flex-shrink-0">
-                  {item.imagen ? (
+                  {(item.imagen || item.dir_img) ? (
                     <img
-                      src={item.imagen}
+                      src={item.imagen || item.dir_img}
                       alt={item.nombre}
-                      className="w-full h-full object-cover rounded-lg border border-gray-200"
+                      className="w-full h-full object-cover rounded-lg"
+                      onError={(e) => {
+                        e.target.style.display = 'none';
+                        e.target.parentElement.innerHTML = '<div class="w-full h-full bg-gray-200 rounded-lg flex items-center justify-center"><svg class="text-2xl text-gray-400 w-8 h-8" fill="currentColor" viewBox="0 0 20 20"><path d="M10 2a4 4 0 00-4 4v1H5a1 1 0 00-.994.89l-1 9A1 1 0 004 18h12a1 1 0 00.994-1.11l-1-9A1 1 0 0015 7h-1V6a4 4 0 00-4-4zm2 5V6a2 2 0 10-4 0v1h4zm-6 3a1 1 0 112 0 1 1 0 01-2 0zm7-1a1 1 0 100 2 1 1 0 000-2z"></path></svg></div>';
+                      }}
                     />
                   ) : (
                     <div className="w-full h-full bg-gray-200 rounded-lg flex items-center justify-center">
-                      <FaShoppingCart className="text-gray-400 text-2xl" />
+                      <FaBox className="text-2xl text-gray-400" />
                     </div>
                   )}
                 </div>
@@ -146,12 +150,12 @@ export const CartPage = () => {
                 </div>
               </div>
 
-              <button
-                onClick={() => window.location.href = '/checkout'}
-                className="w-full py-3 px-6 bg-green-600 text-white rounded-lg hover:bg-green-700 text-lg font-semibold transition transform hover:scale-105 mb-3"
+              <Link
+                to="/cliente/checkout"
+                className="w-full py-3 px-6 bg-green-600 text-white rounded-lg hover:bg-green-700 text-lg font-semibold transition transform hover:scale-105 mb-3 block text-center"
               >
                 Proceder al Pago
-              </button>
+              </Link>
 
               <button
                 onClick={() => {
@@ -166,7 +170,7 @@ export const CartPage = () => {
               </button>
 
               <Link
-                to="/"
+                to="/cliente/productos"
                 className="block text-center mt-4 text-blue-600 hover:text-blue-800 font-semibold transition"
               >
                 &larr; Seguir comprando

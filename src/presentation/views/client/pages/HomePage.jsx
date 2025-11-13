@@ -28,7 +28,7 @@ export const HomePage = () => {
             {/* Botones de acción */}
             <div className="flex flex-col sm:flex-row gap-4">
               <button
-                onClick={() => navigate("/products")}
+                onClick={() => navigate("/cliente/productos")}
                 className="flex items-center justify-center gap-2 px-8 py-4 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white text-lg font-semibold rounded-lg shadow-lg transition transform hover:scale-105"
               >
                 <FaShoppingCart />
@@ -36,7 +36,7 @@ export const HomePage = () => {
                 <FaArrowRight />
               </button>
               <button
-                onClick={() => navigate("/cart")}
+                onClick={() => navigate("/cliente/carrito")}
                 className="flex items-center justify-center gap-2 px-8 py-4 bg-white border-2 border-gray-300 hover:border-blue-600 text-gray-900 hover:text-blue-600 text-lg font-semibold rounded-lg transition"
               >
                 <FaShoppingCart />
@@ -145,7 +145,7 @@ export const HomePage = () => {
             <p className="text-gray-600 mt-2">Descubre nuestras mejores ofertas</p>
           </div>
           <button
-            onClick={() => navigate("/products")}
+            onClick={() => navigate("/cliente/productos")}
             className="flex items-center gap-2 text-blue-600 hover:text-blue-700 font-semibold transition"
           >
             Ver todos
@@ -166,7 +166,7 @@ export const HomePage = () => {
             Explora miles de productos con los mejores precios del mercado
           </p>
           <button
-            onClick={() => navigate("/products")}
+            onClick={() => navigate("/cliente/productos")}
             className="inline-flex items-center gap-2 px-8 py-4 bg-white text-blue-600 font-bold rounded-lg hover:bg-gray-100 transition transform hover:scale-105"
           >
             <FaShoppingCart />

@@ -19,187 +19,158 @@ api.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
+// ========== AUTENTICACIÓN ==========
+export const authAPI = {
+  login: (data) => api.post("login/", data),
+  register: (data) => api.post("registro/", data),
+  refreshToken: (refreshToken) => api.post("api/token/refresh/", { refresh: refreshToken }),
+};
+
+// ========== USUARIOS ==========
+export const usuariosAPI = {
+  list: () => api.get("getUser/"),
+  login: (data) => api.post("login/", data),
+  create: (data) => api.post("registro/", data),
+  update: (id, data) => api.put(`user/${id}/update/`, data),
+  delete: (id) => api.delete(`${id}/elimUser/`),
+  getProfile: () => api.get("perfil/me/"),
+  updateProfile: (data) => api.put("user/editar/", data),
+  getInfo: () => api.get("user/info/"),
+};
+
 // ========== PRODUCTOS ==========
 export const productosAPI = {
-  // Listar todos los productos
   list: () => api.get("productos/"),
-  
-  // Obtener un producto por ID
   get: (id) => api.get(`productos/${id}/`),
-  
-  // Crear un nuevo producto
   create: (data) => api.post("productos/crear/", data),
-  
-  // Actualizar un producto
-  update: (id, data) => api.put(`productos/${id}/`, data),
-  
-  // Eliminar un producto
+  update: (id, data) => api.put(`productos/actualizar/${id}/`, data),
   delete: (id) => api.delete(`productos/eliminar/${id}/`),
+  catalogo: () => api.get("catalogo/"),
+  conDescuento: () => api.get("productos/con-descuento/"),
+  sinGarantia: () => api.get("productos/sin-garantia/"),
+  recomendaciones: () => api.get("recomendaciones/"),
 };
 
 // ========== CATEGORÍAS ==========
 export const categoriasAPI = {
-  // Listar todas las categorías
   list: () => api.get("categorias/"),
-  
-  // Crear una nueva categoría
   create: (data) => api.post("categorias/crear/", data),
-  
-  // Eliminar una categoría
   delete: (id) => api.delete(`categoria/eliminar/${id}/`),
 };
 
 // ========== MARCAS ==========
 export const marcasAPI = {
-  // Listar todas las marcas
   list: () => api.get("marcas/"),
-  
-  // Crear una nueva marca
   create: (data) => api.post("marcas/crear/", data),
-  
-  // Eliminar una marca
   delete: (id) => api.delete(`marcas/eliminar/${id}/`),
 };
 
 // ========== DESCUENTOS ==========
 export const descuentosAPI = {
-  // Listar todos los descuentos
   list: () => api.get("descuentos/"),
-  
-  // Crear un nuevo descuento
   create: (data) => api.post("descuentos/crear/", data),
-  
-  // Actualizar un descuento
   update: (id, data) => api.put(`descuentos/${id}/`, data),
-  
-  // Eliminar un descuento
   delete: (id) => api.delete(`descuentos/eliminar/${id}/`),
+  asignar: (id, data) => api.post(`descuentos/asignar-descuento/${id}/`, data),
 };
 
 // ========== GARANTÍAS ==========
 export const garantiasAPI = {
-  // Listar todas las garantías
   list: () => api.get("garantias/"),
-  
-  // Crear una nueva garantía
   create: (data) => api.post("garantias/crear/", data),
-  
-  // Actualizar una garantía
   update: (id, data) => api.put(`garantias/${id}/`, data),
-  
-  // Eliminar una garantía
   delete: (id) => api.delete(`garantias/eliminar/${id}/`),
 };
 
-// ========== USUARIOS ==========
-export const usuariosAPI = {
-  // Listar todos los usuarios
-  list: () => api.get("getUser/"),
-  
-  // Login - obtener tokens
-  login: (data) => api.post("login/", data),
-  
-  // Registro - crear nuevo usuario
-  create: (data) => api.post("registro/", data),
-  
-  // Actualizar un usuario
-  update: (id, data) => api.put(`user/${id}/update/`, data),
-  
-  // Eliminar un usuario
-  delete: (id) => api.delete(`${id}/elimUser/`),
-  
-  // Obtener info del usuario autenticado
-  getProfile: () => api.get("perfil/me/"),
-  
-  // Actualizar perfil del usuario autenticado
-  updateProfile: (data) => api.put("user/editar/", data),
+// ========== INVENTARIO ==========
+export const inventarioAPI = {
+  list: () => api.get("inventario/"),
+  create: (data) => api.post("inventario/crear/", data),
+  update: (id, data) => api.put(`inventario/actualizar/${id}/`, data),
+};
+
+// ========== CARRITO ==========
+export const carritoAPI = {
+  get: () => api.get("carrito/"),
+  agregar: (data) => api.post("carrito/agregar/", data),
+  eliminar: (productoId) => api.delete(`carrito/eliminar/${productoId}/`),
+};
+
+// ========== VENTAS Y PAGOS ==========
+export const ventasAPI = {
+  crearPago: (data) => api.post("pago/crear/", data),
+  misNotas: () => api.get("notas/"),
+  notaDetalle: (id) => api.get(`notas/${id}/`),
+  notaPDF: (id) => api.get(`notas/${id}/pdf/`, { responseType: 'blob' }),
+  historialCliente: (clienteId) => api.get(`historial/${clienteId}/`),
 };
 
 // ========== ROLES ==========
 export const rolesAPI = {
-  // Listar todos los roles
   list: () => api.get("rol/"),
-  
-  // Crear un nuevo rol
   create: (data) => api.post("rol/crear/", data),
-  
-  // Eliminar un rol
   delete: (id) => api.delete(`rol/eliminar/${id}/`),
 };
 
 // ========== PERMISOS ==========
 export const permisosAPI = {
-  // Listar todos los permisos
   list: () => api.get("permisos/"),
-  
-  // Crear un nuevo permiso
   create: (data) => api.post("permisos/crear/", data),
-  
-  // Eliminar un permiso
   delete: (id) => api.delete(`permisos/eliminar/${id}/`),
-  
-  // Obtener permisos de un rol específico
   getByRole: (rolId) => api.get(`${rolId}/rol_id/rolP/`),
-  
-  // Actualizar permisos de un rol
   updateRolePermissions: (data) => api.put("actP/", data),
+  asignar: (data) => api.post("permisos/asignar/", data),
 };
 
 // ========== CLIENTES ==========
 export const clientesAPI = {
-  // Listar todos los clientes
   list: () => api.get("clientes/"),
-  
-  // Obtener un cliente por ID
   get: (id) => api.get(`cliente/${id}/info/`),
-  
-  // Actualizar un cliente
   update: (id, data) => api.put(`user/${id}/update/`, data),
-  
-  // Eliminar un cliente
   delete: (id) => api.delete(`${id}/elimUser/`),
 };
 
 // ========== TÉCNICOS ==========
 export const tecnicosAPI = {
-  // Listar todos los técnicos
   list: () => api.get("tecnicos/"),
-  
-  // Obtener un técnico por ID
-  get: (id) => api.get(`tecnico/${id}/`),
-  
-  // Crear un nuevo técnico
+  get: (id) => api.get(`tecnicos/${id}/info/`),
   create: (data) => api.post("tecnicos/crear/", data),
-  
-  // Actualizar un técnico
   update: (id, data) => api.put(`tecnico/${id}/update/`, data),
-  
-  // Eliminar un técnico
   delete: (id) => api.delete(`tecnico/${id}/eliminar/`),
-};
-
-// ========== INVENTARIO ==========
-export const inventarioAPI = {
-  // Listar inventario
-  list: () => api.get("inventario/"),
 };
 
 // ========== MANTENIMIENTOS ==========
 export const mantenimientosAPI = {
-  // Listar mantenimientos
   list: () => api.get("mantenimientos/"),
+  create: (data) => api.post("mantenimientos/crear/", data),
+  asignarTecnico: (id, data) => api.post(`mantenimientos/${id}/asignar-tecnico/`, data),
+  porTecnico: () => api.get("mantenimientos/por-tecnico/"),
+  actualizarEstado: (id, data) => api.put(`mantenimientos/${id}/actualizar-estado/`, data),
 };
 
 // ========== REPORTES ==========
 export const reportesAPI = {
-  // Listar reportes
-  list: () => api.get("reportes/"),
+  dinamico: (params) => api.get("reportes/dinamico/", { params }),
 };
 
-// ========== PREDICCIONES ==========
+// ========== BITÁCORA ==========
+export const bitacoraAPI = {
+  list: () => api.get("getBitacora/"),
+};
+
+// ========== NOTIFICACIONES ==========
+export const notificacionesAPI = {
+  list: (userId = null) => api.get("notificaciones/", { params: userId ? { user_id: userId } : {} }),
+  create: (data) => api.post("notificaciones/crear/", data),
+  delete: (id) => api.delete(`notificaciones/${id}/eliminar/`),
+  updateFCMToken: (token) => api.post("fcm/update/", { fcm_token: token }),
+};
+
+// ========== PREDICCIONES (IA) ==========
 export const prediccionesAPI = {
-  // Obtener predicciones
-  list: () => api.get("predicciones/"),
+  predecir: (data) => api.post("ia/predecir/", data),
+  entrenar: (data) => api.post("ia/entrenar/", data),
+  dashboard: () => api.get("ia/dashboard/"),
 };
 
 export default api;

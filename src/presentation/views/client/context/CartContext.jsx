@@ -1,34 +1,160 @@
 import { createContext, useContext, useState, useEffect } from "react";
+import { toast } from 'react-toastify';
+import { carritoAPI } from '../../../../data/sources/api';
+import { useAuth } from '../../../../hooks/useAuth';
 
 const CartContext = createContext();
+
+export const useCart = () => {
+  const context = useContext(CartContext);
+  if (!context) {
+    throw new Error("useCart debe ser usado dentro de CartProvider");
+  }
+  return context;
+};
 
 export const CartProvider = ({ children }) => {
   const [cartItems, setCartItems] = useState([]);
   const [loading, setLoading] = useState(false);
+  const { isAuthenticated } = useAuth();
 
-  // Cargar carrito desde localStorage al montar
+  // Cargar carrito desde backend o localStorage al montar
   useEffect(() => {
-    const savedCart = localStorage.getItem("cart");
-    if (savedCart) {
-      try {
-        setCartItems(JSON.parse(savedCart));
-      } catch (error) {
-        console.error("Error al cargar el carrito:", error);
+    const cargarCarrito = async () => {
+      if (isAuthenticated) {
+        // Usuario autenticado: cargar desde backend
+        setLoading(true);
+        try {
+          const response = await carritoAPI.get();
+          const data = response.data;
+          
+          // El backend devuelve { detalles: [...] }
+          // Necesitamos transformar los detalles en items con cantidad
+          if (data && data.detalles && Array.isArray(data.detalles)) {
+            // Contar productos repetidos y agruparlos
+            const itemsMap = new Map();
+            data.detalles.forEach(detalle => {
+              const productoId = detalle.producto.id;
+              if (itemsMap.has(productoId)) {
+                const item = itemsMap.get(productoId);
+                item.cantidad += 1;
+              } else {
+                itemsMap.set(productoId, {
+                  id: detalle.producto.id,
+                  nombre: detalle.producto.nombre,
+                  precio: detalle.producto.precio,
+                  descripcion: detalle.producto.descripcion,
+                  cantidad: 1,
+                  detalle_id: detalle.id // Guardar el ID del detalle para eliminar
+                });
+              }
+            });
+            setCartItems(Array.from(itemsMap.values()));
+          } else {
+            setCartItems([]);
+          }
+        } catch (error) {
+          console.error("Error al cargar el carrito desde backend:", error);
+          // Fallback a localStorage si falla el backend
+          const savedCart = localStorage.getItem("cart");
+          if (savedCart) {
+            try {
+              const parsed = JSON.parse(savedCart);
+              setCartItems(Array.isArray(parsed) ? parsed : []);
+            } catch (err) {
+              console.error("Error al parsear localStorage:", err);
+              setCartItems([]);
+            }
+          }
+        } finally {
+          setLoading(false);
+        }
+      } else {
+        // Usuario no autenticado: cargar desde localStorage
+        const savedCart = localStorage.getItem("cart");
+        if (savedCart) {
+          try {
+            const parsed = JSON.parse(savedCart);
+            setCartItems(Array.isArray(parsed) ? parsed : []);
+          } catch (error) {
+            console.error("Error al cargar el carrito desde localStorage:", error);
+            setCartItems([]);
+          }
+        }
       }
-    }
-  }, []);
+    };
+    
+    cargarCarrito();
+  }, [isAuthenticated]);
 
-  // Guardar carrito en localStorage cada vez que cambia
+  // Guardar carrito en localStorage cada vez que cambia (backup local)
   useEffect(() => {
     localStorage.setItem("cart", JSON.stringify(cartItems));
   }, [cartItems]);
 
   // Agregar producto al carrito
-  const addToCart = (producto) => {
-    setCartItems((prevItems) => {
-      const existingItem = prevItems.find((item) => item.id === producto.id);
+  const addToCart = async (producto) => {
+    if (isAuthenticated) {
+      // Usuario autenticado: agregar al backend
+      setLoading(true);
+      try {
+        await carritoAPI.agregar({ 
+          producto_id: producto.id, 
+          cantidad: 1 
+        });
+        // Recargar carrito desde backend
+        const response = await carritoAPI.get();
+        const data = response.data;
+        
+        // Transformar detalles del backend en items con cantidad
+        if (data && data.detalles && Array.isArray(data.detalles)) {
+          const itemsMap = new Map();
+          data.detalles.forEach(detalle => {
+            const productoId = detalle.producto.id;
+            if (itemsMap.has(productoId)) {
+              const item = itemsMap.get(productoId);
+              item.cantidad += 1;
+            } else {
+              itemsMap.set(productoId, {
+                id: detalle.producto.id,
+                nombre: detalle.producto.nombre,
+                precio: detalle.producto.precio,
+                descripcion: detalle.producto.descripcion,
+                cantidad: 1,
+                detalle_id: detalle.id
+              });
+            }
+          });
+          setCartItems(Array.from(itemsMap.values()));
+        } else {
+          setCartItems([]);
+        }
+        return true; // Éxito
+      } catch (error) {
+        console.error("Error al agregar al carrito (backend):", error);
+        // Fallback: agregar localmente
+        setCartItems((prevItems) => {
+          const existingItem = prevItems.find((item) => item.id === producto.id);
+          if (existingItem) {
+            return prevItems.map((item) =>
+              item.id === producto.id
+                ? { ...item, cantidad: (item.cantidad || 1) + 1 }
+                : item
+            );
+          } else {
+            return [...prevItems, { ...producto, cantidad: 1 }];
+          }
+        });
+        throw error; // Re-lanzar error para que el componente lo maneje
+      } finally {
+        setLoading(false);
+      }
+    } else {
+      // Usuario no autenticado: agregar a localStorage
+      setCartItems((prevItems) => {
+        const existingItem = prevItems.find((item) => item.id === producto.id);
 
-      if (existingItem) {
+        if (existingItem) {
         // Si ya existe, incrementar cantidad
         return prevItems.map((item) =>
           item.id === producto.id
@@ -40,41 +166,134 @@ export const CartProvider = ({ children }) => {
         return [...prevItems, { ...producto, cantidad: 1 }];
       }
     });
+      return true; // Éxito
+    }
   };
 
   // Eliminar producto del carrito
-  const removeFromCart = (productoId) => {
-    setCartItems((prevItems) =>
-      prevItems.filter((item) => item.id !== productoId)
-    );
+  const removeFromCart = async (productoId) => {
+    if (isAuthenticated) {
+      // Usuario autenticado: eliminar del backend
+      setLoading(true);
+      try {
+        await carritoAPI.eliminar(productoId);
+        // Recargar carrito desde backend
+        const response = await carritoAPI.get();
+        const data = response.data;
+        
+        // Transformar detalles del backend en items con cantidad
+        if (data && data.detalles && Array.isArray(data.detalles)) {
+          const itemsMap = new Map();
+          data.detalles.forEach(detalle => {
+            const pId = detalle.producto.id;
+            if (itemsMap.has(pId)) {
+              const item = itemsMap.get(pId);
+              item.cantidad += 1;
+            } else {
+              itemsMap.set(pId, {
+                id: detalle.producto.id,
+                nombre: detalle.producto.nombre,
+                precio: detalle.producto.precio,
+                descripcion: detalle.producto.descripcion,
+                cantidad: 1,
+                detalle_id: detalle.id
+              });
+            }
+          });
+          setCartItems(Array.from(itemsMap.values()));
+        } else {
+          setCartItems([]);
+        }
+      } catch (error) {
+        console.error("Error al eliminar del carrito (backend):", error);
+        toast.error('No se pudo eliminar del carrito ❌');
+        // Fallback: eliminar localmente
+        setCartItems((prevItems) =>
+          prevItems.filter((item) => item.id !== productoId)
+        );
+      } finally {
+        setLoading(false);
+      }
+    } else {
+      // Usuario no autenticado: eliminar de localStorage
+      setCartItems((prevItems) =>
+        prevItems.filter((item) => item.id !== productoId)
+      );
+    }
   };
 
   // Actualizar cantidad de un producto
-  const updateQuantity = (productoId, cantidad) => {
-    if (cantidad < 1) {
+  const updateQuantity = async (productoId, nuevaCantidad) => {
+    if (nuevaCantidad < 1) {
       removeFromCart(productoId);
       return;
     }
 
-    setCartItems((prevItems) =>
-      prevItems.map((item) =>
-        item.id === productoId ? { ...item, cantidad } : item
-      )
-    );
+    if (isAuthenticated) {
+      // En el backend actual, no hay soporte para cantidades
+      // Por ahora, solo actualizamos localmente y recargamos
+      setLoading(true);
+      try {
+        // El backend no soporta actualización de cantidad directamente
+        // Mantenemos la cantidad local hasta que el usuario haga checkout
+        setCartItems((prevItems) =>
+          prevItems.map((item) =>
+            item.id === productoId ? { ...item, cantidad: nuevaCantidad } : item
+          )
+        );
+      } catch (error) {
+        console.error("Error al actualizar cantidad:", error);
+        toast.error('No se pudo actualizar la cantidad ❌');
+      } finally {
+        setLoading(false);
+      }
+    } else {
+      // Usuario no autenticado: actualizar en localStorage
+      setCartItems((prevItems) =>
+        prevItems.map((item) =>
+          item.id === productoId ? { ...item, cantidad: nuevaCantidad } : item
+        )
+      );
+    }
   };
 
   // Limpiar carrito
-  const clearCart = () => {
-    setCartItems([]);
+  const clearCart = async () => {
+    if (isAuthenticated) {
+      // Usuario autenticado: limpiar backend
+      setLoading(true);
+      try {
+        // Obtener todos los items únicos del carrito
+        const itemsUnicos = [...new Set(cartItems.map(item => item.id))];
+        
+        // Eliminar todos los items uno por uno
+        for (const productoId of itemsUnicos) {
+          await carritoAPI.eliminar(productoId);
+        }
+        setCartItems([]);
+      } catch (error) {
+        console.error("Error al limpiar carrito (backend):", error);
+        toast.error('No se pudo limpiar el carrito completamente ❌');
+        // Fallback: limpiar localmente
+        setCartItems([]);
+      } finally {
+        setLoading(false);
+      }
+    } else {
+      // Usuario no autenticado: limpiar localStorage
+      setCartItems([]);
+    }
   };
 
   // Obtener total de items
   const getCartCount = () => {
+    if (!Array.isArray(cartItems)) return 0;
     return cartItems.reduce((total, item) => total + (item.cantidad || 1), 0);
   };
 
   // Obtener subtotal
   const getSubtotal = () => {
+    if (!Array.isArray(cartItems)) return 0;
     return cartItems.reduce(
       (total, item) =>
         total + parseFloat(item.precio || 0) * (item.cantidad || 1),
@@ -96,12 +315,4 @@ export const CartProvider = ({ children }) => {
   return (
     <CartContext.Provider value={value}>{children}</CartContext.Provider>
   );
-};
-
-export const useCart = () => {
-  const context = useContext(CartContext);
-  if (!context) {
-    throw new Error("useCart debe ser usado dentro de CartProvider");
-  }
-  return context;
 };

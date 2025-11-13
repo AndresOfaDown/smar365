@@ -40,6 +40,7 @@ import { OrdersPage } from "../client/pages/OrdersPage";
 import { ProfilePage } from "../client/pages/ProfilePage";
 import { AdminLayout } from "../../layouts/AdminLayout";
 import { HomeCliente } from "../client/pages/HomeCliente";
+import { OrderDetailPage } from "../client/pages/OrderDetailPage";
 import { CartPage } from '../client/pages/CartPage';
 
 export const AppRouter = () => {
@@ -77,26 +78,21 @@ export const AppRouter = () => {
         {/*<Route path="Descuentos" element={<DescuentosPage/>} />*/}
 
       </Route>
-        {/* 🌐 Rutas públicas (Cliente) */}
-        <Route path="/" element={<MainLayout />}>
-          <Route path="/cliente/home" element={<HomeCliente />}/> 
-          <Route index element={<HomePage />} /> {/* Página principal */}
-          <Route path="products" element={<ProductListPage />} />
-          <Route path="product/:id" element={<ProductDetailPage />} />
-          <Route path="cart" element={<CartPage />} />
-          <Route path="checkout" element={<CheckoutPage />} />
-          <Route path="orders" element={<OrdersPage />} />
-          <Route path="profile" element={<ProfilePage />} />
-          <Route path="cart" element={<CartPage />} />
-        </Route>
-
-        {/* 🔑 Auth */}
+        {/* 🔑 Auth - Sin layout */}
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
 
-        {/* 🔒 Layout protegido (Admin) — se agregará después */}
-        <Route path="/admin" element={<AdminLayout />}>
-          {/* <Route index element={<DashboardPage />} /> */}
+        {/* 🌐 Rutas públicas (Cliente) */}
+        <Route path="/" element={<MainLayout />}>
+          <Route index element={<HomePage />} /> {/* Página principal */}
+          <Route path="cliente/home" element={<HomeCliente />}/> 
+          <Route path="cliente/productos" element={<ProductListPage />} />
+          <Route path="cliente/productos/:id" element={<ProductDetailPage />} />
+          <Route path="cliente/carrito" element={<CartPage />} />
+          <Route path="cliente/checkout" element={<CheckoutPage />} />
+          <Route path="cliente/ordenes" element={<OrdersPage />} />
+          <Route path="cliente/ordenes/:id" element={<OrderDetailPage />} />
+          <Route path="cliente/perfil" element={<ProfilePage />} />
         </Route>
 
         {/* 🚫 Ruta por defecto si no existe */}

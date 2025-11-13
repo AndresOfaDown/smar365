@@ -6,24 +6,39 @@ import { toast } from 'react-toastify';
 export const ProductCard = ({ producto, categoria, marca }) => {
   const { addToCart } = useCart();
 
-  const handleAddToCart = (e) => {
+  const handleAddToCart = async (e) => {
     e.preventDefault();
-    addToCart(producto);
-    toast.success(`${producto.nombre} agregado al carrito ✅`);
+    e.stopPropagation();
+    try {
+      await addToCart(producto);
+      toast.success(`${producto.nombre} agregado al carrito ✅`);
+    } catch (error) {
+      console.error('Error al agregar producto:', error);
+    }
   };
+
+  // Asegurar que siempre tengamos valores válidos
+  const categoriaTexto = categoria || 'Sin categoría';
+  const marcaTexto = marca || 'Sin marca';
+  const precioTexto = producto?.precio ? parseFloat(producto.precio).toFixed(2) : '0.00';
+  const imagenUrl = producto?.imagen || producto?.dir_img || null;
 
   return (
     <Link
       to={`/cliente/productos/${producto.id}`}
-      className="bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-200 overflow-hidden group cursor-pointer"
+      className="bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-200 overflow-hidden group cursor-pointer block"
     >
       {/* Imagen */}
       <div className="relative overflow-hidden bg-gray-100 h-56">
-        {producto.imagen ? (
+        {imagenUrl ? (
           <img
-            src={producto.imagen}
+            src={imagenUrl}
             alt={producto.nombre}
             className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+            onError={(e) => {
+              e.target.style.display = 'none';
+              e.target.parentElement.innerHTML = '<div class="w-full h-full flex items-center justify-center bg-gray-200"><svg class="text-4xl text-gray-400 w-16 h-16" fill="currentColor" viewBox="0 0 20 20"><path d="M10 2a4 4 0 00-4 4v1H5a1 1 0 00-.994.89l-1 9A1 1 0 004 18h12a1 1 0 00.994-1.11l-1-9A1 1 0 0015 7h-1V6a4 4 0 00-4-4zm2 5V6a2 2 0 10-4 0v1h4zm-6 3a1 1 0 112 0 1 1 0 01-2 0zm7-1a1 1 0 100 2 1 1 0 000-2z"></path></svg></div>';
+            }}
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center bg-gray-200">
@@ -43,11 +58,11 @@ export const ProductCard = ({ producto, categoria, marca }) => {
         {/* Categoría y Marca */}
         <div className="flex justify-between items-start gap-2 mb-2">
           <span className="text-xs font-semibold text-blue-600 bg-blue-50 px-2 py-1 rounded">
-            {categoria}
+            {categoriaTexto}
           </span>
-          {marca && (
+          {marcaTexto !== 'Sin marca' && (
             <span className="text-xs font-semibold text-gray-500 bg-gray-100 px-2 py-1 rounded">
-              {marca}
+              {marcaTexto}
             </span>
           )}
         </div>
@@ -81,7 +96,7 @@ export const ProductCard = ({ producto, categoria, marca }) => {
         <div className="flex items-center justify-between">
           <div>
             <p className="text-2xl font-bold text-green-600">
-              ${parseFloat(producto.precio).toFixed(2)}
+              Bs. {precioTexto}
             </p>
           </div>
           <button

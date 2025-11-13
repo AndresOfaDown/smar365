@@ -15,7 +15,7 @@ export const FeaturedProducts = () => {
       setLoading(true);
       try {
         const [productosRes, categoriasRes, marcasRes] = await Promise.all([
-          productosAPI.list(),
+          productosAPI.catalogo(),
           categoriasAPI.list(),
           marcasAPI.list(),
         ]);
@@ -24,6 +24,9 @@ export const FeaturedProducts = () => {
         setProductos(productosRes.data.slice(0, 4));
         setCategorias(categoriasRes.data);
         setMarcas(marcasRes.data);
+        
+        // Debug: Ver estructura de datos
+        console.log('Primer producto del catálogo:', productosRes.data[0]);
       } catch (err) {
         console.error('Error al cargar productos destacados:', err);
         toast.error('No se pudieron cargar los productos ❌');
@@ -62,8 +65,18 @@ export const FeaturedProducts = () => {
 
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
         {productos.map((producto) => {
-          const categoria = categorias.find((c) => c.id === producto.categoria)?.nombre || 'N/A';
-          const marca = marcas.find((m) => m.id === producto.marca)?.nombre || 'N/A';
+          const categoria = categorias.find((c) => c.id === producto.categoria)?.nombre || 'Sin categoría';
+          const marca = marcas.find((m) => m.id === producto.marca)?.nombre || 'Sin marca';
+          
+          // Debug log para verificar los datos
+          console.log('Producto:', {
+            id: producto.id,
+            nombre: producto.nombre,
+            categoria_id: producto.categoria,
+            marca_id: producto.marca,
+            categoria_nombre: categoria,
+            marca_nombre: marca
+          });
           
           return (
             <ProductCard

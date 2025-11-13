@@ -19,7 +19,7 @@ export const ProductListPage = () => {
       setLoading(true);
       try {
         const [productosRes, categoriasRes, marcasRes] = await Promise.all([
-          productosAPI.list(),
+          productosAPI.catalogo(),
           categoriasAPI.list(),
           marcasAPI.list(),
         ]);
@@ -136,8 +136,8 @@ export const ProductListPage = () => {
             </p>
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
               {filteredProductos.map((producto) => {
-                const categoria = categorias.find((c) => c.id === producto.categoria)?.nombre || 'N/A';
-                const marca = marcas.find((m) => m.id === producto.marca)?.nombre || 'N/A';
+                const categoria = categorias.find((c) => c.id === producto.categoria)?.nombre || 'Sin categoría';
+                const marca = marcas.find((m) => m.id === producto.marca)?.nombre || 'Sin marca';
                 
                 return (
                   <ProductCard
