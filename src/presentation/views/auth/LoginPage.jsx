@@ -33,6 +33,15 @@ export const LoginPage = () => {
       localStorage.setItem("usuario", JSON.stringify(response.data.usuario));
 
       toast.success("¡Bienvenido! Iniciaste sesión correctamente");
+
+      // Verificar si hay un producto pendiente para agregar al carrito
+      const pendingProduct = localStorage.getItem('pendingProduct');
+      if (pendingProduct) {
+        localStorage.removeItem('pendingProduct');
+        // Redirigir a productos para que pueda continuar comprando
+        navigate("/cliente/productos");
+        return;
+      }
       
       // Redirigir según el rol del usuario
       const rol = response.data.usuario.rol;

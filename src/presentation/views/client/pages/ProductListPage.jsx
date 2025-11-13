@@ -5,6 +5,7 @@ import * as ProductoService from '../../../../Services/ProductoService';
 import * as CategoriaService from '../../../../Services/CategoriaService';
 import * as MarcaService from '../../../../Services/MarcaService';
 import { ProductCard } from '../components/ProductCard';
+import { ShoppingAssistant } from '../components/ShoppingAssistant';
 
 export const ProductListPage = () => {
   const [search, setSearch] = useState('');
@@ -21,7 +22,7 @@ export const ProductListPage = () => {
       setLoading(true);
       try {
         const [productosRes, categoriasRes, marcasRes] = await Promise.all([
-          ProductoService.catalogo(),
+          ProductoService.getCatalogo(),
           CategoriaService.listCategorias(),
           MarcaService.listMarcas(),
         ]);
@@ -154,6 +155,16 @@ export const ProductListPage = () => {
           </div>
         )}
       </div>
+
+      {/* 🤖 Asistente de Compras con IA */}
+      <ShoppingAssistant
+        productos={productos}
+        categorias={categorias}
+        marcas={marcas}
+        onSearch={setSearch}
+        onFilterCategoria={setFilterCategoria}
+        onFilterMarca={setFilterMarca}
+      />
     </section>
   );
 };

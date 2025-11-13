@@ -1,19 +1,32 @@
 import { FaStar, FaBox } from 'react-icons/fa';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
 import { toast } from 'react-toastify';
 
 export const ProductCard = ({ producto, categoria, marca }) => {
   const { addToCart } = useCart();
+  const navigate = useNavigate();
 
   const handleAddToCart = async (e) => {
     e.preventDefault();
     e.stopPropagation();
+    
+    // Verificar si el usuario está autenticado
+    const token = localStorage.getItem('access');
+    if (!token) {
+      toast.warning('Debes iniciar sesión para agregar productos al carrito 🔐');
+      // Guardar el producto en localStorage temporalmente
+      localStorage.setItem('pendingProduct', JSON.stringify(producto));
+      navigate('/login');
+      return;
+    }
+    
     try {
       await addToCart(producto);
       toast.success(`${producto.nombre} agregado al carrito ✅`);
     } catch (error) {
       console.error('Error al agregar producto:', error);
+      toast.error('Error al agregar al carrito ❌');
     }
   };
 

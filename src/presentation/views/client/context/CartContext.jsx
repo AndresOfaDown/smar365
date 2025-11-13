@@ -22,7 +22,18 @@ export const CartProvider = ({ children }) => {
   useEffect(() => {
     const cargarCarrito = async () => {
       if (isAuthenticated) {
-        // Usuario autenticado: cargar desde backend
+        // Verificar si el usuario es Cliente antes de cargar carrito
+        const user = JSON.parse(localStorage.getItem('user') || '{}');
+        const rolId = user.rol_id || user.rol;
+        
+        // Solo cargar carrito si es Cliente (rol_id === 2)
+        if (rolId !== 2) {
+          console.log('Usuario no es cliente, no se carga carrito');
+          setCartItems([]);
+          return;
+        }
+
+        // Usuario autenticado y es Cliente: cargar desde backend
         setLoading(true);
         try {
           const response = await carritoAPI.get();
@@ -93,20 +104,19 @@ export const CartProvider = ({ children }) => {
   }, [cartItems]);
 
   // Agregar producto al carrito
-  const addToCart = async (producto) => {
+  const addToCart = async (producto, cantidad = 1) => {
     if (isAuthenticated) {
       // Usuario autenticado: agregar al backend
       setLoading(true);
       try {
         await carritoAPI.agregar({ 
           producto_id: producto.id, 
-          cantidad: 1 
+          cantidad: cantidad
         });
         // Recargar carrito desde backend
         const response = await carritoAPI.get();
         const data = response.data;
         
-        // Transformar detalles del backend en items con cantidad
         if (data && data.detalles && Array.isArray(data.detalles)) {
           const itemsMap = new Map();
           data.detalles.forEach(detalle => {
@@ -129,23 +139,20 @@ export const CartProvider = ({ children }) => {
         } else {
           setCartItems([]);
         }
-        return true; // Éxito
+        toast.success(`✅ ${cantidad} ${producto.nombre}(s) agregado(s) al carrito`);
+        return true;
       } catch (error) {
-        console.error("Error al agregar al carrito (backend):", error);
-        // Fallback: agregar localmente
-        setCartItems((prevItems) => {
-          const existingItem = prevItems.find((item) => item.id === producto.id);
-          if (existingItem) {
-            return prevItems.map((item) =>
-              item.id === producto.id
-                ? { ...item, cantidad: (item.cantidad || 1) + 1 }
-                : item
-            );
-          } else {
-            return [...prevItems, { ...producto, cantidad: 1 }];
-          }
-        });
-        throw error; // Re-lanzar error para que el componente lo maneje
+        console.error("Error al agregar al carrito:", error);
+        
+        // Mostrar mensaje de error específico del backend
+        if (error.response?.data?.error) {
+          toast.error(`❌ ${error.response.data.error}`);
+        } else if (error.response?.status === 400) {
+          toast.error("❌ Solo los clientes pueden agregar productos al carrito. Cierra sesión y entra como cliente.");
+        } else {
+          toast.error("❌ Error al agregar al carrito");
+        }
+        return false;
       } finally {
         setLoading(false);
       }
@@ -153,20 +160,18 @@ export const CartProvider = ({ children }) => {
       // Usuario no autenticado: agregar a localStorage
       setCartItems((prevItems) => {
         const existingItem = prevItems.find((item) => item.id === producto.id);
-
         if (existingItem) {
-        // Si ya existe, incrementar cantidad
-        return prevItems.map((item) =>
-          item.id === producto.id
-            ? { ...item, cantidad: (item.cantidad || 1) + 1 }
-            : item
-        );
-      } else {
-        // Si no existe, agregarlo nuevo
-        return [...prevItems, { ...producto, cantidad: 1 }];
-      }
-    });
-      return true; // Éxito
+          return prevItems.map((item) =>
+            item.id === producto.id
+              ? { ...item, cantidad: (item.cantidad || 1) + cantidad }
+              : item
+          );
+        } else {
+          return [...prevItems, { ...producto, cantidad: cantidad }];
+        }
+      });
+      toast.success(`✅ ${cantidad} ${producto.nombre}(s) agregado(s)`);
+      return true;
     }
   };
 
@@ -230,20 +235,41 @@ export const CartProvider = ({ children }) => {
     }
 
     if (isAuthenticated) {
-      // En el backend actual, no hay soporte para cantidades
-      // Por ahora, solo actualizamos localmente y recargamos
+      // ✅ Ahora usamos el endpoint actualizar del backend
       setLoading(true);
       try {
-        // El backend no soporta actualización de cantidad directamente
-        // Mantenemos la cantidad local hasta que el usuario haga checkout
-        setCartItems((prevItems) =>
-          prevItems.map((item) =>
-            item.id === productoId ? { ...item, cantidad: nuevaCantidad } : item
-          )
-        );
+        await carritoAPI.actualizar(productoId, { cantidad: nuevaCantidad });
+        
+        // Recargar carrito desde backend
+        const response = await carritoAPI.get();
+        const data = response.data;
+        
+        if (data && data.detalles && Array.isArray(data.detalles)) {
+          const itemsMap = new Map();
+          data.detalles.forEach(detalle => {
+            const pId = detalle.producto.id;
+            if (itemsMap.has(pId)) {
+              const item = itemsMap.get(pId);
+              item.cantidad += 1;
+            } else {
+              itemsMap.set(pId, {
+                id: detalle.producto.id,
+                nombre: detalle.producto.nombre,
+                precio: detalle.producto.precio,
+                descripcion: detalle.producto.descripcion,
+                cantidad: 1,
+                detalle_id: detalle.id
+              });
+            }
+          });
+          setCartItems(Array.from(itemsMap.values()));
+        } else {
+          setCartItems([]);
+        }
+        toast.success('✅ Cantidad actualizada');
       } catch (error) {
         console.error("Error al actualizar cantidad:", error);
-        toast.error('No se pudo actualizar la cantidad ❌');
+        toast.error('❌ No se pudo actualizar la cantidad');
       } finally {
         setLoading(false);
       }
@@ -260,20 +286,15 @@ export const CartProvider = ({ children }) => {
   // Limpiar carrito
   const clearCart = async () => {
     if (isAuthenticated) {
-      // Usuario autenticado: limpiar backend
+      // ✅ Usar el nuevo endpoint vaciar del backend
       setLoading(true);
       try {
-        // Obtener todos los items únicos del carrito
-        const itemsUnicos = [...new Set(cartItems.map(item => item.id))];
-        
-        // Eliminar todos los items uno por uno
-        for (const productoId of itemsUnicos) {
-          await carritoAPI.eliminar(productoId);
-        }
+        await carritoAPI.vaciar();
         setCartItems([]);
+        toast.success('✅ Carrito vaciado');
       } catch (error) {
         console.error("Error al limpiar carrito (backend):", error);
-        toast.error('No se pudo limpiar el carrito completamente ❌');
+        toast.error('❌ No se pudo vaciar el carrito');
         // Fallback: limpiar localmente
         setCartItems([]);
       } finally {

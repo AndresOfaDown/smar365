@@ -130,7 +130,9 @@ export const inventarioAPI = {
 export const carritoAPI = {
   get: () => api.get("carrito/"),
   agregar: (data) => api.post("carrito/agregar/", data),
+  actualizar: (productoId, data) => api.put(`carrito/actualizar/${productoId}/`, data),  // ✅ UPDATE
   eliminar: (productoId) => api.delete(`carrito/eliminar/${productoId}/`),
+  vaciar: () => api.delete("carrito/vaciar/"),  // ✅ DELETE ALL
 };
 
 // ========== VENTAS Y PAGOS ==========

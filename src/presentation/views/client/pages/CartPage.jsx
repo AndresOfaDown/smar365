@@ -151,10 +151,10 @@ export const CartPage = () => {
               </div>
 
               <Link
-                to="/cliente/checkout"
+                to="/cliente/stripe-checkout"
                 className="w-full py-3 px-6 bg-green-600 text-white rounded-lg hover:bg-green-700 text-lg font-semibold transition transform hover:scale-105 mb-3 block text-center"
               >
-                Proceder al Pago
+                💳 Pagar con Stripe
               </Link>
 
               <button

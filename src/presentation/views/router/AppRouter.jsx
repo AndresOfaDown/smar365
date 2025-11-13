@@ -36,6 +36,7 @@ import { HomePage } from "../client/pages/HomePage";
 import { ProductListPage } from "../client/pages/ProductListPage";
 import { ProductDetailPage } from "../client/pages/ProductDetailPage";
 import { CheckoutPage } from "../client/pages/CheckoutPage";
+import { StripeCheckoutPage } from "../client/pages/StripeCheckoutPage";  // ✅ Stripe
 import { OrdersPage } from "../client/pages/OrdersPage";
 import { ProfilePage } from "../client/pages/ProfilePage";
 import { AdminLayout } from "../../layouts/AdminLayout";
@@ -85,11 +86,13 @@ export const AppRouter = () => {
         {/* 🌐 Rutas públicas (Cliente) */}
         <Route path="/" element={<MainLayout />}>
           <Route index element={<HomePage />} /> {/* Página principal */}
+          <Route path="productos" element={<ProductListPage />} /> {/* Pública */}
           <Route path="cliente/home" element={<HomeCliente />}/> 
           <Route path="cliente/productos" element={<ProductListPage />} />
           <Route path="cliente/productos/:id" element={<ProductDetailPage />} />
           <Route path="cliente/carrito" element={<CartPage />} />
           <Route path="cliente/checkout" element={<CheckoutPage />} />
+          <Route path="cliente/stripe-checkout" element={<StripeCheckoutPage />} /> {/* ✅ Stripe Payment */}
           <Route path="cliente/ordenes" element={<OrdersPage />} />
           <Route path="cliente/ordenes/:id" element={<OrderDetailPage />} />
           <Route path="cliente/perfil" element={<ProfilePage />} />
