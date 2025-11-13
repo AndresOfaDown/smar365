@@ -1,12 +1,11 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
 import { toast } from "react-toastify";
 import { useParams, Link } from "react-router-dom";
-import { FaEdit, FaHardHat } from "react-icons/fa"; // Iconos
+import { FaEdit, FaHardHat } from "react-icons/fa";
+import { tecnicosAPI } from "../../../data/sources/api";
 
 export const TecnicoDetallePage = () => {
-  const { id } = useParams(); // Obtiene el ID del técnico de la URL
-  const token = localStorage.getItem("access");
+  const { id } = useParams();
   const [tecnico, setTecnico] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -15,12 +14,7 @@ export const TecnicoDetallePage = () => {
     const fetchTecnico = async () => {
       setLoading(true);
       try {
-        // --- ¡CAMBIO AQUÍ! ---
-        // Corregido a 'tecnicos' (plural) para que coincida con tu URL.
-        const res = await axios.get(
-          `http://127.0.0.1:8000/api/tecnicos/${id}/info/`,
-          { headers: { Authorization: `Bearer ${token}` } }
-        );
+        const res = await tecnicosAPI.get(id);
         setTecnico(res.data);
       } catch (err) {
         console.error("Error al cargar técnico:", err);
@@ -37,7 +31,7 @@ export const TecnicoDetallePage = () => {
     };
 
     fetchTecnico();
-  }, [id, token]);
+  }, [id]);
 
   if (loading) {
     return <p className="text-center text-gray-500">Cargando técnico...</p>;

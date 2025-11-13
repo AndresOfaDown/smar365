@@ -1,48 +1,69 @@
-// src/presentation/components/ProductGrid.jsx
-import { ProductCard } from "./ProductCard";
+import { useEffect, useState } from 'react';
+import { toast } from 'react-toastify';
+import { productosAPI, categoriasAPI, marcasAPI } from '../../../../data/sources/api';
+import { ProductCard } from './ProductCard';
+import { FaBox } from 'react-icons/fa';
 
 export const ProductGrid = () => {
-  const products = [
-    {
-      id: 1,
-      name: "Wireless Headphones",
-      price: "99.99",
-      image:
-        "https://images.unsplash.com/photo-1585386959984-a41552231693?auto=format&fit=crop&w=300&q=80",
-    },
-    {
-      id: 2,
-      name: "Smart Watch",
-      price: "199.99",
-      image:
-        "https://images.unsplash.com/photo-1606220838311-05c3be0f51b7?auto=format&fit=crop&w=300&q=80",
-    },
-    {
-      id: 3,
-      name: "Smart Speaker",
-      price: "49.99",
-      image:
-        "https://images.unsplash.com/photo-1618365908648-eda4d4815a86?auto=format&fit=crop&w=300&q=80",
-    },
-    {
-      id: 4,
-      name: "Tablet Pro",
-      price: "299.99",
-      image:
-        "https://images.unsplash.com/photo-1585792180666-1400e01a7d1d?auto=format&fit=crop&w=300&q=80",
-    },
-  ];
+  const [productos, setProductos] = useState([]);
+  const [categorias, setCategorias] = useState([]);
+  const [marcas, setMarcas] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const cargarDatos = async () => {
+      setLoading(true);
+      try {
+        const [productosRes, categoriasRes, marcasRes] = await Promise.all([
+          productosAPI.list(),
+          categoriasAPI.list(),
+          marcasAPI.list(),
+        ]);
+        setProductos(productosRes.data);
+        setCategorias(categoriasRes.data);
+        setMarcas(marcasRes.data);
+      } catch (err) {
+        console.error('Error al cargar productos:', err);
+        toast.error('No se pudieron cargar los productos ❌');
+      } finally {
+        setLoading(false);
+      }
+    };
+    cargarDatos();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center py-12">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
+
+  if (productos.length === 0) {
+    return (
+      <div className="text-center py-12">
+        <FaBox className="text-6xl text-gray-300 mx-auto mb-4" />
+        <p className="text-gray-500 text-lg">No hay productos disponibles</p>
+      </div>
+    );
+  }
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 gap-6">
-      {products.map((p) => (
-        <ProductCard
-          key={p.id}
-          image={p.image}
-          name={p.name}
-          price={p.price}
-        />
-      ))}
+    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+      {productos.map((producto) => {
+        const categoria = categorias.find((c) => c.id === producto.categoria)?.nombre || 'N/A';
+        const marca = marcas.find((m) => m.id === producto.marca)?.nombre || 'N/A';
+        
+        return (
+          <ProductCard
+            key={producto.id}
+            producto={producto}
+            categoria={categoria}
+            marca={marca}
+          />
+        );
+      })}
     </div>
   );
 };

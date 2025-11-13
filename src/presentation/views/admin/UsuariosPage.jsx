@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
-import axios from "axios";
 import { toast } from "react-toastify";
 import { FaPlus, FaEdit, FaTrash } from "react-icons/fa";
+import { usuariosAPI, rolesAPI } from "../../../data/sources/api";
 
 export const UsuariosPage = () => {
   const [usuarios, setUsuarios] = useState([]);
@@ -17,36 +17,23 @@ export const UsuariosPage = () => {
     rol_id: "",
   });
 
-  const token = localStorage.getItem("access");
-
-  // 🔹 Obtener usuarios
-  const fetchUsuarios = async () => {
+  // 🔹 Obtener usuarios y roles
+  const fetchData = async () => {
     try {
-      const res = await axios.get("http://127.0.0.1:8000/api/getUser/", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      setUsuarios(res.data);
+      const [usuariosRes, rolesRes] = await Promise.all([
+        usuariosAPI.list(),
+        rolesAPI.list(),
+      ]);
+      setUsuarios(usuariosRes.data);
+      setRoles(rolesRes.data);
     } catch (err) {
       console.error(err);
-      toast.error("Error al cargar usuarios ❌");
-    }
-  };
-
-  // 🔹 Obtener roles
-  const fetchRoles = async () => {
-    try {
-      const res = await axios.get("http://127.0.0.1:8000/api/rol/", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      setRoles(res.data);
-    } catch (err) {
-      toast.error("Error al cargar roles ❌");
+      toast.error("Error al cargar datos ❌");
     }
   };
 
   useEffect(() => {
-    fetchUsuarios();
-    fetchRoles();
+    fetchData();
   }, []);
 
   // 🔹 Manejar cambios en el formulario
@@ -62,19 +49,17 @@ export const UsuariosPage = () => {
         return;
       }
 
-      await axios.post("http://127.0.0.1:8000/api/registro/",
-     {
-       nombre: form.nombre,
-      email: form.email,
-      password: form.password,
-      telefono: form.telefono,
-      direccion: form.direccion,
-     rol: parseInt(form.rol_id), // 👈 backend espera "rol", no "rol_id"
-     },
-    { headers: { Authorization: `Bearer ${token}` } }
-    );
+      const userData = {
+        nombre: form.nombre,
+        email: form.email,
+        password: form.password,
+        telefono: form.telefono,
+        direccion: form.direccion,
+        rol: parseInt(form.rol_id),
+      };
 
-
+      const res = await usuariosAPI.create(userData);
+      setUsuarios([...usuarios, res.data]);
       toast.success("Usuario creado ✅");
       setForm({
         nombre: "",
@@ -84,7 +69,6 @@ export const UsuariosPage = () => {
         direccion: "",
         rol_id: "",
       });
-      fetchUsuarios();
     } catch (err) {
       console.error(err);
       toast.error("Error al crear usuario ❌");
@@ -98,8 +82,8 @@ export const UsuariosPage = () => {
     setForm({
       nombre: usuario.nombre,
       email: usuario.email,
-      telefono: usuario.telefono,
-      direccion: usuario.direccion,
+      telefono: usuario.telefono || "",
+      direccion: usuario.direccion || "",
       rol_id: usuario.rol_id || "",
       password: "",
     });
@@ -108,12 +92,18 @@ export const UsuariosPage = () => {
   // 🔹 Guardar edición
   const handleUpdate = async () => {
     try {
-      await axios.put(
-        `http://127.0.0.1:8000/api/user/${usuarioSeleccionado}/update/`,
-        form,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
+      const updateData = {
+        nombre: form.nombre,
+        email: form.email,
+        telefono: form.telefono,
+        direccion: form.direccion,
+      };
+
+      await usuariosAPI.update(usuarioSeleccionado, updateData);
+      setUsuarios(
+        usuarios.map((u) =>
+          u.id === usuarioSeleccionado ? { ...u, ...updateData } : u
+        )
       );
       toast.success("Usuario actualizado ✅");
       setModoEdicion(false);
@@ -126,7 +116,6 @@ export const UsuariosPage = () => {
         direccion: "",
         rol_id: "",
       });
-      fetchUsuarios();
     } catch (err) {
       console.error(err);
       toast.error("Error al actualizar usuario ❌");
@@ -137,12 +126,11 @@ export const UsuariosPage = () => {
   const handleDelete = async (id) => {
     if (!confirm("¿Seguro que deseas eliminar este usuario?")) return;
     try {
-      await axios.delete(`http://127.0.0.1:8000/api/${id}/elimUser/`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      await usuariosAPI.delete(id);
+      setUsuarios(usuarios.filter((u) => u.id !== id));
       toast.success("Usuario eliminado ✅");
-      fetchUsuarios();
     } catch (err) {
+      console.error(err);
       toast.error("Error al eliminar usuario ❌");
     }
   };

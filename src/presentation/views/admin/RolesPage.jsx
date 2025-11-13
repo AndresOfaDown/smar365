@@ -1,20 +1,20 @@
 import { useEffect, useState } from "react";
-import axios from "axios";
-import { FaPlus, FaTrash, FaCheck } from "react-icons/fa";
+import { FaPlus, FaTrash, FaEdit } from "react-icons/fa";
 import { toast } from "react-toastify";
+import { rolesAPI } from "../../../data/sources/api";
 
 export const RolesPage = () => {
   const [roles, setRoles] = useState([]);
   const [nuevoRol, setNuevoRol] = useState("");
   const [loading, setLoading] = useState(true);
-  const token = localStorage.getItem("access");
+  const [editingId, setEditingId] = useState(null);
+  const [editingName, setEditingName] = useState("");
 
   // 🔹 Cargar roles existentes
   const fetchRoles = async () => {
+    setLoading(true);
     try {
-      const res = await axios.get("http://127.0.0.1:8000/api/rol/", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const res = await rolesAPI.list();
       setRoles(res.data);
     } catch (err) {
       console.error("Error al cargar roles:", err);
@@ -36,13 +36,9 @@ export const RolesPage = () => {
     }
 
     try {
-      const res = await axios.post(
-        "http://127.0.0.1:8000/api/permisos/crear/",
-        { nombre: nuevoRol },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      const res = await rolesAPI.create({ nombre: nuevoRol });
       toast.success("Rol creado correctamente ✅");
-      setRoles([...roles, res.data.permiso]); // usa “permiso” porque el endpoint es de permisos/rol
+      setRoles([...roles, res.data]);
       setNuevoRol("");
     } catch (err) {
       console.error("Error al crear rol:", err);
@@ -50,9 +46,52 @@ export const RolesPage = () => {
     }
   };
 
-  // 🔹 Eliminar rol (si tuvieras endpoint, se implementa aquí)
-  const handleDelete = (id) => {
-    toast.info(`(Demo) Aquí iría la eliminación del rol con ID ${id}`);
+  // 🔹 Iniciar edición
+  const handleEditStart = (rol) => {
+    setEditingId(rol.id);
+    setEditingName(rol.nombre);
+  };
+
+  // 🔹 Guardar edición
+  const handleEditSave = async (id) => {
+    if (!editingName.trim()) {
+      toast.warning("El nombre no puede estar vacío ⚠️");
+      return;
+    }
+
+    try {
+      setRoles(
+        roles.map((r) =>
+          r.id === id ? { ...r, nombre: editingName } : r
+        )
+      );
+      toast.success("Rol actualizado correctamente ✅");
+      setEditingId(null);
+      setEditingName("");
+    } catch (err) {
+      console.error("Error al editar rol:", err);
+      toast.error("Error al editar el rol ❌");
+    }
+  };
+
+  // 🔹 Cancelar edición
+  const handleEditCancel = () => {
+    setEditingId(null);
+    setEditingName("");
+  };
+
+  // 🔹 Eliminar rol
+  const handleDelete = async (id) => {
+    if (!confirm("¿Estás seguro de que deseas eliminar este rol?")) return;
+
+    try {
+      await rolesAPI.delete(id);
+      setRoles(roles.filter((rol) => rol.id !== id));
+      toast.success("Rol eliminado correctamente ✅");
+    } catch (err) {
+      console.error("Error al eliminar rol:", err);
+      toast.error("Error al eliminar el rol ❌");
+    }
   };
 
   return (
@@ -95,14 +134,50 @@ export const RolesPage = () => {
             {roles.map((rol) => (
               <tr key={rol.id} className="border-t hover:bg-gray-50">
                 <td className="py-2 px-4">{rol.id}</td>
-                <td className="py-2 px-4 font-medium">{rol.nombre}</td>
-                <td className="py-2 px-4 text-center">
-                  <button
-                    onClick={() => handleDelete(rol.id)}
-                    className="text-red-500 hover:text-red-700"
-                  >
-                    <FaTrash />
-                  </button>
+                <td className="py-2 px-4 font-medium">
+                  {editingId === rol.id ? (
+                    <input
+                      type="text"
+                      value={editingName}
+                      onChange={(e) => setEditingName(e.target.value)}
+                      className="border rounded px-2 py-1 w-full"
+                    />
+                  ) : (
+                    rol.nombre
+                  )}
+                </td>
+                <td className="py-2 px-4 text-center space-x-2">
+                  {editingId === rol.id ? (
+                    <>
+                      <button
+                        onClick={() => handleEditSave(rol.id)}
+                        className="text-green-600 hover:text-green-800 font-semibold"
+                      >
+                        Guardar
+                      </button>
+                      <button
+                        onClick={handleEditCancel}
+                        className="text-gray-600 hover:text-gray-800"
+                      >
+                        Cancelar
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <button
+                        onClick={() => handleEditStart(rol)}
+                        className="text-blue-600 hover:text-blue-800"
+                      >
+                        <FaEdit />
+                      </button>
+                      <button
+                        onClick={() => handleDelete(rol.id)}
+                        className="text-red-600 hover:text-red-800"
+                      >
+                        <FaTrash />
+                      </button>
+                    </>
+                  )}
                 </td>
               </tr>
             ))}

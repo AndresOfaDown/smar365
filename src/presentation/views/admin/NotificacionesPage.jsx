@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
-import axios from "axios";
 import { toast } from "react-toastify";
 import { FaPlus, FaTrash } from "react-icons/fa";
+import { api, usuariosAPI } from "../../../data/sources/api";
 
 export const NotificacionesPage = () => {
   const [notificaciones, setNotificaciones] = useState([]);
@@ -12,14 +12,10 @@ export const NotificacionesPage = () => {
     usuario_id: "",
   });
 
-  const token = localStorage.getItem("access");
-
   // 🔹 Cargar notificaciones
   const fetchNotificaciones = async () => {
     try {
-      const res = await axios.get("http://127.0.0.1:8000/api/notificaciones/", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const res = await api.get("notificaciones/");
       setNotificaciones(res.data);
     } catch (err) {
       toast.error("Error al cargar notificaciones ❌");
@@ -29,9 +25,7 @@ export const NotificacionesPage = () => {
   // 🔹 Cargar usuarios
   const fetchUsuarios = async () => {
     try {
-      const res = await axios.get("http://127.0.0.1:8000/api/getUser/", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const res = await usuariosAPI.list();
       setUsuarios(res.data);
     } catch (err) {
       toast.error("Error al cargar usuarios ❌");
@@ -56,14 +50,13 @@ export const NotificacionesPage = () => {
         return;
       }
 
-      await axios.post(
-        "http://127.0.0.1:8000/api/notificaciones/crear/",
+      await api.post(
+        "notificaciones/crear/",
         {
           titulo: form.titulo,
           mensaje: form.mensaje,
           usuario_id: parseInt(form.usuario_id),
-        },
-        { headers: { Authorization: `Bearer ${token}` } }
+        }
       );
 
       toast.success("Notificación enviada ✅");
@@ -79,9 +72,7 @@ export const NotificacionesPage = () => {
   const handleDelete = async (id) => {
     if (!confirm("¿Eliminar esta notificación?")) return;
     try {
-      await axios.delete(`http://127.0.0.1:8000/api/notificaciones/${id}/eliminar/`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      await api.delete(`notificaciones/${id}/eliminar/`);
       toast.success("Notificación eliminada ✅");
       fetchNotificaciones();
     } catch (err) {

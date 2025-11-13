@@ -1,5 +1,6 @@
 // src/presentation/routes/AppRouter.jsx
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { CartProvider } from "../client/context/CartContext";
 import { MainLayout } from "../../layouts/MainLayout";
 // Vistas del Admin
 import { DashboardPage } from "../admin/DashboardPage";
@@ -7,10 +8,8 @@ import { UsuariosPage } from "../admin/UsuariosPage";
 import { RolesPage } from "../admin/RolesPage";
 import { PermisosPage } from "../admin/PermisosPage";
 import { BitacoraPage } from "../admin/BitacoraPage";
-import { ProductosPage } from "../admin/ProductosPage";
+import { GestionarProductos } from "../admin/GestionarProductos";
 import { DetalleProductoPage } from "../admin/DetalleProductoPage";
-import { CrearProductoForm } from "../admin/CrearProductoForm";
-import { EditarProductoPage } from "../admin/EditarProductoPage";
 import { CategoriasPage } from "../admin/CategoriasPage";
 import { MarcasPage } from "../admin/MarcaPage";
 import { DescuentosPage } from "../admin/DescuentosPage"
@@ -30,8 +29,8 @@ import { ReportesPage } from '../admin/ReportesPage';
 
 
 // Vistas del cliente
-//import { LoginPage } from "../auth/LoginPage";
-//import { RegisterPage } from "../auth/RegisterPage";
+import { LoginPage } from "../auth/LoginPage";
+import { RegisterPage } from "../auth/RegisterPage";
 
 import { HomePage } from "../client/pages/HomePage";
 import { ProductListPage } from "../client/pages/ProductListPage";
@@ -45,8 +44,9 @@ import { CartPage } from '../client/pages/CartPage';
 
 export const AppRouter = () => {
   return (
-    <BrowserRouter>
-      <Routes>
+    <CartProvider>
+      <BrowserRouter>
+        <Routes>
 
         {/* Rutas de Administrador*/}
         <Route path="/admin" element={<AdminLayout />}>
@@ -55,11 +55,9 @@ export const AppRouter = () => {
         <Route path="roles" element={<RolesPage />} />
         <Route path="permisos" element={<PermisosPage />} />
         <Route path="bitacora" element={<BitacoraPage />} />
-        <Route path="crearproducto" element={<CrearProductoForm />} />
-        <Route path="productos" element={<ProductosPage />} />
+        <Route path="productos" element={<GestionarProductos />} />
         <Route path="categorias" element={<CategoriasPage/>}/>
         <Route path="/admin/productos/detalles/:id" element={<DetalleProductoPage/>}/>
-        <Route path="/admin/productos/editar/:id" element={<EditarProductoPage />} />
         <Route path="marca" element={<MarcasPage/>}/>
         <Route path="notificaciones" element={<NotificacionesPage />} />
         <Route path="descuentos" element={<DescuentosPage />} />
@@ -93,6 +91,9 @@ export const AppRouter = () => {
         </Route>
 
         {/* 🔑 Auth */}
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/register" element={<RegisterPage />} />
+
         {/* 🔒 Layout protegido (Admin) — se agregará después */}
         <Route path="/admin" element={<AdminLayout />}>
           {/* <Route index element={<DashboardPage />} /> */}
@@ -102,5 +103,6 @@ export const AppRouter = () => {
         <Route path="*" element={<h2 className='text-center mt-10 text-gray-600'>404 | Página no encontrada</h2>} />
       </Routes>
     </BrowserRouter>
+    </CartProvider>
   );
 };

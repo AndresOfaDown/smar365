@@ -1,30 +1,26 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
 import { toast } from "react-toastify";
-import { FaPlus } from "react-icons/fa";
+import { FaPlus, FaTrash, FaEdit } from "react-icons/fa";
+import { garantiasAPI } from "../../../data/sources/api";
 
-// Asumo que tu modelo de Garantia tiene 'nombre' y 'descripcion'
-// Si tiene 'duracion_meses' u otro campo, ajusta el formData y el formulario.
 export const GarantiasPage = () => {
   const [garantias, setGarantias] = useState([]);
   const [loading, setLoading] = useState(true);
-  const token = localStorage.getItem("access");
+  const [showForm, setShowForm] = useState(false);
+  const [editingId, setEditingId] = useState(null);
 
-  // --- (Sin cambios aquí) ---
   const [formData, setFormData] = useState({
-    producto: "", // ID del producto
-    fecha_inicio: "",
-    fecha_fin: "",
+    nombre: "",
+    descripcion: "",
+    duracion_meses: "",
   });
 
-  // --- CAMBIO: 'listar_garantias' devuelve un objeto con 'producto: nombre' ---
+  // Cargar garantías
   const fetchGarantias = async () => {
     setLoading(true);
     try {
-      const res = await axios.get("http://127.0.0.1:8000/api/garantias/", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      setGarantias(res.data); // res.data es la lista de garantías
+      const res = await garantiasAPI.list();
+      setGarantias(res.data);
     } catch (err) {
       console.error("Error al cargar garantías:", err);
       toast.error("No se pudieron cargar las garantías ❌");
@@ -35,9 +31,9 @@ export const GarantiasPage = () => {
 
   useEffect(() => {
     fetchGarantias();
-  }, [token]);
+  }, []);
 
-  // Manejador para el formulario (Sin cambios)
+  // Manejador para el formulario
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prevData) => ({
@@ -46,131 +42,212 @@ export const GarantiasPage = () => {
     }));
   };
 
-  // --- CAMBIO: 'handleSubmit' ahora maneja la respuesta 'res.data.garantia' y los errores 400 ---
+  // Crear o actualizar garantía
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
+    if (!formData.nombre || !formData.duracion_meses) {
+      toast.warning("Complete los campos requeridos ⚠️");
+      return;
+    }
+
     const dataAEnviar = {
-      producto: parseInt(formData.producto),
-      fecha_inicio: formData.fecha_inicio,
-      fecha_fin: formData.fecha_fin,
+      nombre: formData.nombre,
+      descripcion: formData.descripcion,
+      duracion_meses: parseInt(formData.duracion_meses),
     };
 
     try {
-      const res = await axios.post(
-        "http://127.0.0.1:8000/api/garantias/crear/",
-        dataAEnviar,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-        }
-      );
-      toast.success(res.data.mensaje || "Garantía creada ✅"); // Muestra el mensaje de la API
-      
-      // La API devuelve { mensaje: "...", garantia: {...} }
-      // Añadimos solo el objeto 'garantia' a nuestra lista de estado
-      setGarantias((prevGarantias) => [...prevGarantias, res.data.garantia]); 
-      
-      setFormData({ producto: "", fecha_inicio: "", fecha_fin: "" });
-    } catch (err)
- {
-      console.error("Error al crear garantía:", err);
-      // --- MEJORA: Mostrar el error específico del backend ---
-      if (err.response && err.response.data && err.response.data.error) {
-        // Esto mostrará "Este producto ya tiene una garantía asignada."
-        toast.error(`Error: ${err.response.data.error} ❌`);
+      if (editingId) {
+        // Actualizar
+        await garantiasAPI.update(editingId, dataAEnviar);
+        setGarantias(
+          garantias.map((g) =>
+            g.id === editingId ? { ...g, ...dataAEnviar } : g
+          )
+        );
+        toast.success("Garantía actualizada correctamente ✅");
+        setEditingId(null);
       } else {
-        toast.error("Error al crear la garantía ❌");
+        // Crear
+        const res = await garantiasAPI.create(dataAEnviar);
+        setGarantias([...garantias, res.data]);
+        toast.success("Garantía creada correctamente ✅");
       }
+
+      setFormData({
+        nombre: "",
+        descripcion: "",
+        duracion_meses: "",
+      });
+      setShowForm(false);
+    } catch (err) {
+      console.error("Error:", err);
+      toast.error("Error al guardar la garantía ❌");
     }
   };
 
+  // Editar garantía
+  const handleEdit = (garantia) => {
+    setEditingId(garantia.id);
+    setFormData({
+      nombre: garantia.nombre,
+      descripcion: garantia.descripcion || "",
+      duracion_meses: garantia.duracion_meses || "",
+    });
+    setShowForm(true);
+  };
+
+  // Cancelar edición
+  const handleCancel = () => {
+    setEditingId(null);
+    setShowForm(false);
+    setFormData({
+      nombre: "",
+      descripcion: "",
+      duracion_meses: "",
+    });
+  };
+
+  // Eliminar garantía
+  const handleDelete = async (id) => {
+    if (!confirm("¿Estás seguro de que deseas eliminar esta garantía?")) return;
+
+    try {
+      await garantiasAPI.delete(id);
+      setGarantias(garantias.filter((g) => g.id !== id));
+      toast.success("Garantía eliminada correctamente ✅");
+    } catch (err) {
+      console.error("Error al eliminar garantía:", err);
+      toast.error("Error al eliminar la garantía ❌");
+    }
+  };
 
   return (
     <div className="container mx-auto p-6">
-      <h2 className="text-3xl font-semibold text-gray-800 mb-6">
-        Gestión de Garantías
-      </h2>
-
-      {/* --- Formulario (Sin cambios) --- */}
-      <div className="bg-white rounded-lg shadow p-6 mb-8">
-        <h3 className="text-lg font-semibold mb-3">Crear y Asignar Garantía a Producto</h3>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700">
-              ID del Producto
-            </label>
-            <input
-              type="number"
-              name="producto"
-              value={formData.producto}
-              onChange={handleChange}
-              className="mt-1 p-3 w-full border border-gray-300 rounded-lg shadow-sm"
-              placeholder="Ej: 5"
-              required
-            />
-          </div>
-          
-          <div>
-            <label className="block text-sm font-medium text-gray-700">
-              Fecha de Inicio
-            </label>
-            <input
-              type="date"
-              name="fecha_inicio"
-              value={formData.fecha_inicio}
-              onChange={handleChange}
-              className="mt-1 p-3 w-full border border-gray-300 rounded-lg shadow-sm"
-              required
-            />
-          </div>
-          
-          <div>
-            <label className="block text-sm font-medium text-gray-700">
-              Fecha de Fin
-            </label>
-            <input
-              type="date"
-              name="fecha_fin"
-              value={formData.fecha_fin}
-              onChange={handleChange}
-              className="mt-1 p-3 w-full border border-gray-300 rounded-lg shadow-sm"
-              required
-            />
-          </div>
-
-          <button
-            type="submit"
-            className="w-full py-3 px-6 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center justify-center gap-2"
-          >
-            <FaPlus /> Crear Garantía
-          </button>
-        </form>
+      <div className="flex justify-between items-center mb-6">
+        <h2 className="text-3xl font-semibold text-gray-800">Gestión de Garantías</h2>
+        <button
+          onClick={() => setShowForm(!showForm)}
+          className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md"
+        >
+          <FaPlus /> Crear Garantía
+        </button>
       </div>
 
-      {/* --- CAMBIO: Lista ahora muestra 'garantia.producto' (que es un nombre) --- */}
+      {/* Formulario para Crear/Editar Garantía */}
+      {showForm && (
+        <div className="bg-white rounded-lg shadow p-6 mb-8">
+          <h3 className="text-lg font-semibold mb-3">
+            {editingId ? "Editar garantía" : "Crear nueva garantía"}
+          </h3>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700">
+                  Nombre de la Garantía
+                </label>
+                <input
+                  type="text"
+                  name="nombre"
+                  value={formData.nombre}
+                  onChange={handleChange}
+                  className="mt-1 p-3 w-full border border-gray-300 rounded-lg shadow-sm"
+                  placeholder="Ej: Garantía Básica"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">
+                  Duración (meses)
+                </label>
+                <input
+                  type="number"
+                  name="duracion_meses"
+                  value={formData.duracion_meses}
+                  onChange={handleChange}
+                  className="mt-1 p-3 w-full border border-gray-300 rounded-lg shadow-sm"
+                  placeholder="Ej: 12"
+                  min="1"
+                  required
+                />
+              </div>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700">
+                Descripción
+              </label>
+              <textarea
+                name="descripcion"
+                value={formData.descripcion}
+                onChange={handleChange}
+                className="mt-1 p-3 w-full border border-gray-300 rounded-lg shadow-sm"
+                placeholder="Detalle la cobertura de la garantía"
+                rows="3"
+              />
+            </div>
+            <div className="flex gap-2">
+              <button
+                type="submit"
+                className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md"
+              >
+                {editingId ? "Actualizar" : "Crear"}
+              </button>
+              <button
+                type="button"
+                onClick={handleCancel}
+                className="bg-gray-400 hover:bg-gray-500 text-white px-4 py-2 rounded-md"
+              >
+                Cancelar
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
+
+      {/* Lista de Garantías */}
       <div className="bg-white rounded-lg shadow p-6">
         <h3 className="text-lg font-semibold mb-3">Garantías Existentes</h3>
         {loading ? (
           <p>Cargando...</p>
+        ) : garantias.length === 0 ? (
+          <p className="text-gray-500">No hay garantías creadas.</p>
         ) : (
-          <ul className="space-y-2">
-            {garantias.map((garantia) => (
-              <li
-                key={garantia.id}
-                className="p-3 bg-gray-50 rounded-lg"
-              >
-                <span className="font-medium text-gray-800">
-                  {garantia.producto} (Garantía ID: {garantia.id})
-                </span>
-                <p className="text-sm text-gray-600">
-                  Válida de: {garantia.fecha_inicio} hasta {garantia.fecha_fin}
-                </p> {/* <-- ¡ERROR CORREGIDO AQUÍ! Era </Vigente> */}
-              </li>
-            ))}
-          </ul>
+          <div className="overflow-x-auto">
+            <table className="min-w-full border rounded-lg">
+              <thead className="bg-blue-600 text-white">
+                <tr>
+                  <th className="py-2 px-4 text-left">Nombre</th>
+                  <th className="py-2 px-4 text-left">Duración</th>
+                  <th className="py-2 px-4 text-left">Descripción</th>
+                  <th className="py-2 px-4 text-center">Acciones</th>
+                </tr>
+              </thead>
+              <tbody>
+                {garantias.map((garantia) => (
+                  <tr key={garantia.id} className="border-t hover:bg-gray-50">
+                    <td className="py-2 px-4 font-medium">{garantia.nombre}</td>
+                    <td className="py-2 px-4">{garantia.duracion_meses} meses</td>
+                    <td className="py-2 px-4 text-sm">{garantia.descripcion || "-"}</td>
+                    <td className="py-2 px-4 text-center space-x-2">
+                      <button
+                        onClick={() => handleEdit(garantia)}
+                        className="text-blue-600 hover:text-blue-800"
+                      >
+                        <FaEdit />
+                      </button>
+                      <button
+                        onClick={() => handleDelete(garantia.id)}
+                        className="text-red-600 hover:text-red-800"
+                      >
+                        <FaTrash />
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         )}
       </div>
     </div>

@@ -1,23 +1,18 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
 import { toast } from "react-toastify";
 import { FaRobot, FaBrain, FaChartLine, FaChartBar, FaChartPie } from "react-icons/fa";
-// Importamos más componentes de recharts
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
   BarChart, Bar, PieChart, Pie, Cell,
 } from "recharts";
+import { api } from "../../../data/sources/api";
 
-const PREDICCION_API_URL_BASE = "http://127.0.0.1:8000/api/ia";
-const REPORTES_API_URL_BASE = "http://127.0.0.1:8000/api/reportes/dinamico/";
+const PREDICCION_API_URL_BASE = "ia";
+const REPORTES_API_URL_BASE = "reportes/dinamico/";
 
-// Colores para el gráfico de pastel
 const PIE_COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8'];
 
 export const DashboardPage = () => {
-  const token = localStorage.getItem("access");
-
-  // --- Estados para todos los datos ---
   const [prediccionesData, setPrediccionesData] = useState([]);
   const [ventasClienteData, setVentasClienteData] = useState([]);
   const [ventasProductoData, setVentasProductoData] = useState([]);
@@ -25,7 +20,6 @@ export const DashboardPage = () => {
   const [modeloStats, setModeloStats] = useState(null);
   const [prediccionResultados, setPrediccionResultados] = useState([]);
 
-  // --- Estados de Carga ---
   const [loading, setLoading] = useState(true);
   const [loadingEntrenar, setLoadingEntrenar] = useState(false);
   const [loadingPredecir, setLoadingPredecir] = useState(false);
@@ -34,25 +28,16 @@ export const DashboardPage = () => {
   const fetchAllDashboardData = async () => {
     setLoading(true);
     try {
-      // Usamos Promise.all para hacer todas las peticiones en paralelo
       const [resPredicciones, resVentasCliente, resVentasProducto] = await Promise.all([
-        // Petición 1: Predicciones futuras
-        axios.get(`${PREDICCION_API_URL_BASE}/dashboard/`, {
-          headers: { Authorization: `Bearer ${token}` },
-        }),
-        // Petición 2: Histórico por Cliente
-        axios.post(REPORTES_API_URL_BASE, 
-          { prompt: "agrupado por cliente" }, 
-          { headers: { Authorization: `Bearer ${token}` } }
+        api.get(`${PREDICCION_API_URL_BASE}/dashboard/`),
+        api.post(REPORTES_API_URL_BASE, 
+          { prompt: "agrupado por cliente" }
         ),
-        // Petición 3: Histórico por Producto
-        axios.post(REPORTES_API_URL_BASE, 
-          { prompt: "agrupado por producto" }, 
-          { headers: { Authorization: `Bearer ${token}` } }
+        api.post(REPORTES_API_URL_BASE, 
+          { prompt: "agrupado por producto" }
         )
       ]);
 
-      // Procesar datos de predicciones (Gráfica de Línea)
       const dataFormateada = resPredicciones.data.map(item => ({
         ...item,
         valor_predicho: parseFloat(item.valor_predicho)
@@ -91,10 +76,9 @@ export const DashboardPage = () => {
     setLoadingEntrenar(true);
     setModeloStats(null);
     try {
-      const res = await axios.post(
+      const res = await api.post(
         `${PREDICCION_API_URL_BASE}/entrenar/`,
-        {},
-        { headers: { Authorization: `Bearer ${token}` } }
+        {}
       );
       setModeloStats({ mse: res.data.mse, r2: res.data.r2 });
       toast.success(res.data.mensaje || "Modelo entrenado ✅");
@@ -111,14 +95,12 @@ export const DashboardPage = () => {
     setLoadingPredecir(true);
     setPrediccionResultados([]);
     try {
-      const res = await axios.post(
+      const res = await api.post(
         `${PREDICCION_API_URL_BASE}/predecir/`,
-        {},
-        { headers: { Authorization: `Bearer ${token}` } }
+        {}
       );
       setPrediccionResultados(res.data.resultados);
       toast.success(res.data.mensaje || "Predicciones generadas ✅");
-      // Volvemos a cargar los datos del dashboard para que la gráfica se actualice
       fetchAllDashboardData();
     } catch (err) {
       console.error("Error al predecir:", err);

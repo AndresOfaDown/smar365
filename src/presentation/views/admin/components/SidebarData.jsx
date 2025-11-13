@@ -18,12 +18,7 @@ export const sections = [
     icon: <FaBox />,
     title: "Inventario",
     items: [
-      { label: "Registrar Producto", to: "/admin/registrar-producto" },
-      { label: "Listar Producto", to: "/admin/listar-producto" },
-      { label: "Registrar Categoría", to: "/admin/registrar-categoria" },
-      { label: "Registrar Proveedores", to: "/admin/registrar-proveedores" },
-      { label: "Listar Proveedores", to: "/admin/listarproveedores" },
-      { label: "Listar Ordenes", to: "/admin/ordenesAdmin" },
+      { label: "Gestionar Productos", to: "/admin/productos" },
     ],
   },
 

@@ -1,16 +1,15 @@
-import React, { useState, useEffect, useRef } from "react"; // <-- AÑADIDO useEffect y useRef
-import axios from "axios";
+import React, { useState, useEffect, useRef } from "react";
 import { toast } from "react-toastify";
-import { FaFilePdf, FaFileExcel, FaChartBar, FaMicrophone } from "react-icons/fa"; // <-- AÑADIDO FaMicrophone
+import { FaFilePdf, FaFileExcel, FaChartBar, FaMicrophone } from "react-icons/fa";
+import { api } from "../../../data/sources/api";
 
 export const ReportesPage = () => {
   const [prompt, setPrompt] = useState("");
-  const [reporteData, setReporteData] = useState([]); // Para la tabla en pantalla
-  const [columnas, setColumnas] = useState([]);      // Para las cabeceras de la tabla
+  const [reporteData, setReporteData] = useState([]);
+  const [columnas, setColumnas] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [isListening, setIsListening] = useState(false); // <-- NUEVO ESTADO
-  const token = localStorage.getItem("access");
-  const speechRecognitionRef = useRef(null); // <-- NUEVA REFERENCIA
+  const [isListening, setIsListening] = useState(false);
+  const speechRecognitionRef = useRef(null);
 
   // --- NUEVO: useEffect para configurar el reconocimiento de voz ---
   useEffect(() => {
@@ -67,25 +66,20 @@ export const ReportesPage = () => {
 
     try {
       if (esDescarga) {
-        // --- LÓGICA DE DESCARGA (PDF/EXCEL) ---
-        
-        const res = await axios.post(
-          "http://127.0.0.1:8000/api/reportes/dinamico/",
+        const res = await api.post(
+          "reportes/dinamico/",
           { prompt },
           {
-            headers: { Authorization: `Bearer ${token}` },
-            responseType: 'blob', // ¡Importante! Le decimos a Axios que espere un archivo
+            responseType: 'blob',
           }
         );
 
-        // Determinar el tipo de archivo y el nombre
         const esPdf = promptLimpio.includes("pdf");
         const filename = esPdf ? "reporte.pdf" : "reporte.xlsx";
         const contentType = esPdf 
           ? "application/pdf" 
           : "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
 
-        // Truco para descargar el archivo 'blob' en el navegador
         const url = window.URL.createObjectURL(new Blob([res.data], { type: contentType }));
         const link = document.createElement('a');
         link.href = url;
@@ -93,23 +87,19 @@ export const ReportesPage = () => {
         document.body.appendChild(link);
         link.click();
         link.remove();
-        window.URL.revokeObjectURL(url); // Limpiar
+        window.URL.revokeObjectURL(url);
 
         toast.success("Descarga del reporte iniciada ✅");
 
       } else {
-        // --- LÓGICA DE MOSTRAR EN PANTALLA (JSON) ---
-        
-        const res = await axios.post(
-          "http://127.0.0.1:8000/api/reportes/dinamico/",
-          { prompt },
-          { headers: { Authorization: `Bearer ${token}` } }
+        const res = await api.post(
+          "reportes/dinamico/",
+          { prompt }
         );
 
         const data = res.data.reporte || [];
 
         if (data.length > 0) {
-          // Generamos las columnas dinámicamente desde el primer objeto
           setColumnas(Object.keys(data[0]));
           setReporteData(data);
           toast.success("Reporte generado en pantalla ✅");

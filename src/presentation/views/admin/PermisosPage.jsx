@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
-import axios from "axios";
 import { toast } from "react-toastify";
 import { FaCheckSquare, FaPlus } from "react-icons/fa";
+import { rolesAPI, permisosAPI } from "../../../data/sources/api";
 
 export const PermisosPage = () => {
   const [roles, setRoles] = useState([]);
@@ -9,14 +9,11 @@ export const PermisosPage = () => {
   const [rolSeleccionado, setRolSeleccionado] = useState(null);
   const [asignaciones, setAsignaciones] = useState([]);
   const [nuevoPermiso, setNuevoPermiso] = useState("");
-  const token = localStorage.getItem("access");
 
   // 🔹 Cargar roles
   const fetchRoles = async () => {
     try {
-      const res = await axios.get("http://127.0.0.1:8000/api/rol/", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const res = await rolesAPI.list();
       setRoles(res.data);
     } catch (err) {
       toast.error("Error al cargar roles ❌");
@@ -26,9 +23,7 @@ export const PermisosPage = () => {
   // 🔹 Cargar todos los permisos
   const fetchPermisos = async () => {
     try {
-      const res = await axios.get("http://127.0.0.1:8000/api/permisos/", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const res = await permisosAPI.list();
       setPermisos(res.data);
     } catch (err) {
       toast.error("Error al cargar permisos ❌");
@@ -38,9 +33,7 @@ export const PermisosPage = () => {
   // 🔹 Cargar permisos del rol seleccionado
   const fetchPermisosPorRol = async (rolId) => {
     try {
-      const res = await axios.get(`http://127.0.0.1:8000/api/${rolId}/rol_id/rolP/`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const res = await permisosAPI.getByRole(rolId);
       setAsignaciones(res.data);
     } catch (err) {
       toast.error("Error al obtener permisos del rol ❌");
@@ -63,11 +56,7 @@ export const PermisosPage = () => {
       return;
     }
     try {
-      await axios.post(
-        "http://127.0.0.1:8000/api/permisos/crear/",
-        { nombre: nuevoPermiso },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      await permisosAPI.create({ nombre: nuevoPermiso });
       toast.success("Permiso creado correctamente ✅");
       setNuevoPermiso("");
       fetchPermisos();
@@ -84,9 +73,7 @@ export const PermisosPage = () => {
         permisos: [{ permiso_id: permisoId, estado: !estadoActual }],
       };
 
-      await axios.put("http://127.0.0.1:8000/api/actP/", payload, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      await permisosAPI.updateRolePermissions(payload);
 
       toast.info("Estado del permiso actualizado ✅");
       fetchPermisosPorRol(rolSeleccionado);

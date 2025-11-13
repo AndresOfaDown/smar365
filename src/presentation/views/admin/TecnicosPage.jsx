@@ -1,23 +1,25 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
 import { toast } from "react-toastify";
 import { Link } from "react-router-dom";
-import { FaHardHat } from "react-icons/fa"; // Un icono para técnicos
+import { FaHardHat, FaPlus, FaTrash } from "react-icons/fa";
+import { tecnicosAPI } from "../../../data/sources/api";
 
 export const TecnicosPage = () => {
   const [tecnicos, setTecnicos] = useState([]);
   const [loading, setLoading] = useState(true);
-  const token = localStorage.getItem("access");
+  const [showForm, setShowForm] = useState(false);
+  const [formData, setFormData] = useState({
+    nombre: "",
+    apellido: "",
+    email: "",
+    especialidad: "",
+  });
 
   useEffect(() => {
     const fetchTecnicos = async () => {
       setLoading(true);
       try {
-        const res = await axios.get("http://127.0.0.1:8000/api/tecnicos/", {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
+        const res = await tecnicosAPI.list();
         setTecnicos(res.data);
       } catch (err) {
         console.error("Error al cargar técnicos:", err);
@@ -28,7 +30,39 @@ export const TecnicosPage = () => {
     };
 
     fetchTecnicos();
-  }, [token]);
+  }, []);
+
+  const handleCreate = async (e) => {
+    e.preventDefault();
+    if (!formData.nombre.trim() || !formData.email.trim()) {
+      toast.warning("Nombre y email son requeridos ⚠️");
+      return;
+    }
+
+    try {
+      const res = await tecnicosAPI.create(formData);
+      setTecnicos([...tecnicos, res.data]);
+      toast.success("Técnico creado correctamente ✅");
+      setFormData({ nombre: "", apellido: "", email: "", especialidad: "" });
+      setShowForm(false);
+    } catch (err) {
+      console.error("Error al crear técnico:", err);
+      toast.error("Error al crear el técnico ❌");
+    }
+  };
+
+  const handleDelete = async (id) => {
+    if (!confirm("¿Estás seguro de que deseas eliminar este técnico?")) return;
+
+    try {
+      await tecnicosAPI.delete(id);
+      setTecnicos(tecnicos.filter((t) => t.id !== id));
+      toast.success("Técnico eliminado correctamente ✅");
+    } catch (err) {
+      console.error("Error al eliminar técnico:", err);
+      toast.error("Error al eliminar el técnico ❌");
+    }
+  };
 
   if (loading) {
     return <p className="text-center text-gray-500">Cargando técnicos...</p>;
@@ -41,21 +75,72 @@ export const TecnicosPage = () => {
           <FaHardHat />
           Gestión de Técnicos
         </h2>
-        {/* Opcional: Botón para crear nuevo técnico
-        <Link
-          to="/admin/tecnicos/crear"
-          className="py-2 px-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+        <button
+          onClick={() => setShowForm(!showForm)}
+          className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md"
         >
-          + Crear Técnico
-        </Link>
-        */}
+          <FaPlus /> Crear Técnico
+        </button>
       </div>
+
+      {showForm && (
+        <div className="bg-white rounded-lg shadow p-6 mb-8">
+          <h3 className="text-lg font-semibold mb-4">Crear nuevo técnico</h3>
+          <form onSubmit={handleCreate} className="grid grid-cols-2 gap-4">
+            <input
+              type="text"
+              placeholder="Nombre *"
+              value={formData.nombre}
+              onChange={(e) => setFormData({ ...formData, nombre: e.target.value })}
+              className="border rounded-lg px-3 py-2"
+            />
+            <input
+              type="text"
+              placeholder="Apellido"
+              value={formData.apellido}
+              onChange={(e) => setFormData({ ...formData, apellido: e.target.value })}
+              className="border rounded-lg px-3 py-2"
+            />
+            <input
+              type="email"
+              placeholder="Email *"
+              value={formData.email}
+              onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+              className="border rounded-lg px-3 py-2"
+            />
+            <input
+              type="text"
+              placeholder="Especialidad"
+              value={formData.especialidad}
+              onChange={(e) => setFormData({ ...formData, especialidad: e.target.value })}
+              className="border rounded-lg px-3 py-2"
+            />
+            <div className="col-span-2 flex gap-2">
+              <button
+                type="submit"
+                className="flex-1 bg-green-600 hover:bg-green-700 text-white py-2 rounded-md"
+              >
+                Guardar
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setShowForm(false);
+                  setFormData({ nombre: "", apellido: "", email: "", especialidad: "" });
+                }}
+                className="flex-1 bg-gray-600 hover:bg-gray-700 text-white py-2 rounded-md"
+              >
+                Cancelar
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
 
       <div className="bg-white rounded-lg shadow overflow-hidden">
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-blue-600 text-white">
             <tr>
-              {/* Ajusta estos campos a tu modelo de Técnico */}
               <th className="py-3 px-6 text-left">Nombre</th>
               <th className="py-3 px-6 text-left">Email</th>
               <th className="py-3 px-6 text-left">Especialidad</th>
@@ -70,13 +155,19 @@ export const TecnicosPage = () => {
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">{tecnico.email}</td>
                 <td className="px-6 py-4 whitespace-nowrap">{tecnico.especialidad || "N/A"}</td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-center">
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-center space-x-2">
                   <Link
                     to={`/admin/tecnicos/detalles/${tecnico.id}`}
                     className="text-blue-600 hover:text-blue-800 font-medium"
                   >
                     Ver Detalles
                   </Link>
+                  <button
+                    onClick={() => handleDelete(tecnico.id)}
+                    className="text-red-600 hover:text-red-800"
+                  >
+                    <FaTrash />
+                  </button>
                 </td>
               </tr>
             ))}

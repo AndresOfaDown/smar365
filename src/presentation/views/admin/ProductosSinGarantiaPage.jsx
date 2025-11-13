@@ -1,20 +1,18 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
 import { toast } from "react-toastify";
 import { Link } from "react-router-dom";
+import { api } from "../../../data/sources/api";
 
 export const ProductosSinGarantiaPage = () => {
   const [productos, setProductos] = useState([]);
   const [loading, setLoading] = useState(true);
-  const token = localStorage.getItem("access");
 
   useEffect(() => {
     const fetchProductosSinGarantia = async () => {
       setLoading(true);
       try {
-        const res = await axios.get(
-          "http://127.0.0.1:8000/api/productos/sin-garantia/",
-          { headers: { Authorization: `Bearer ${token}` } }
+        const res = await api.get(
+          "productos/sin-garantia/"
         );
         setProductos(res.data);
       } catch (err) {
@@ -26,7 +24,7 @@ export const ProductosSinGarantiaPage = () => {
     };
 
     fetchProductosSinGarantia();
-  }, [token]);
+  }, []);
 
   return (
     <div className="container mx-auto p-6">

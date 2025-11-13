@@ -1,58 +1,107 @@
-import { Link, NavLink } from "react-router-dom";
-//import { useCart } from "../client/context/CartContext";
-import { FaUser, FaShoppingCart, FaSearch, FaBolt } from "react-icons/fa";
+import { createContext, useContext, useState, useEffect } from "react";
 
-export const Navbar = () => {
-  //const { cartCount } = useCart();
+const CartContext = createContext();
+
+export const CartProvider = ({ children }) => {
+  const [cartItems, setCartItems] = useState([]);
+  const [loading, setLoading] = useState(false);
+
+  // Cargar carrito desde localStorage al montar
+  useEffect(() => {
+    const savedCart = localStorage.getItem("cart");
+    if (savedCart) {
+      try {
+        setCartItems(JSON.parse(savedCart));
+      } catch (error) {
+        console.error("Error al cargar el carrito:", error);
+      }
+    }
+  }, []);
+
+  // Guardar carrito en localStorage cada vez que cambia
+  useEffect(() => {
+    localStorage.setItem("cart", JSON.stringify(cartItems));
+  }, [cartItems]);
+
+  // Agregar producto al carrito
+  const addToCart = (producto) => {
+    setCartItems((prevItems) => {
+      const existingItem = prevItems.find((item) => item.id === producto.id);
+
+      if (existingItem) {
+        // Si ya existe, incrementar cantidad
+        return prevItems.map((item) =>
+          item.id === producto.id
+            ? { ...item, cantidad: (item.cantidad || 1) + 1 }
+            : item
+        );
+      } else {
+        // Si no existe, agregarlo nuevo
+        return [...prevItems, { ...producto, cantidad: 1 }];
+      }
+    });
+  };
+
+  // Eliminar producto del carrito
+  const removeFromCart = (productoId) => {
+    setCartItems((prevItems) =>
+      prevItems.filter((item) => item.id !== productoId)
+    );
+  };
+
+  // Actualizar cantidad de un producto
+  const updateQuantity = (productoId, cantidad) => {
+    if (cantidad < 1) {
+      removeFromCart(productoId);
+      return;
+    }
+
+    setCartItems((prevItems) =>
+      prevItems.map((item) =>
+        item.id === productoId ? { ...item, cantidad } : item
+      )
+    );
+  };
+
+  // Limpiar carrito
+  const clearCart = () => {
+    setCartItems([]);
+  };
+
+  // Obtener total de items
+  const getCartCount = () => {
+    return cartItems.reduce((total, item) => total + (item.cantidad || 1), 0);
+  };
+
+  // Obtener subtotal
+  const getSubtotal = () => {
+    return cartItems.reduce(
+      (total, item) =>
+        total + parseFloat(item.precio || 0) * (item.cantidad || 1),
+      0
+    );
+  };
+
+  const value = {
+    cartItems,
+    loading,
+    addToCart,
+    removeFromCart,
+    updateQuantity,
+    clearCart,
+    getCartCount,
+    getSubtotal,
+  };
+
   return (
-    <header className="sticky top-0 z-50 bg-white/70 backdrop-blur-md shadow-sm">
-      <div className="max-w-7xl mx-auto flex justify-between items-center py-4 px-6">
-        {/* 🔷 Logo */}
-        <Link
-          to="/"
-          className="flex items-center gap-2 text-2xl font-extrabold text-blue-600"
-        >
-          <FaBolt className="text-yellow-400" />
-          SmartSales<span className="text-gray-800">365</span>
-        </Link>
-
-        {/* 🔹 Menú principal */}
-        <nav className="hidden md:flex items-center gap-8 text-gray-700 font-medium">
-          <NavLink
-            to="/"
-            className={({ isActive }) =>
-              isActive ? "text-blue-600 font-semibold" : "hover:text-blue-600"
-            }
-          >
-            Inicio
-          </NavLink>
-          <NavLink to="/products" className="hover:text-blue-600">
-            Productos
-          </NavLink>
-          <NavLink to="/orders" className="hover:text-blue-600">
-            Mis Pedidos
-          </NavLink>
-          <NavLink to="/profile" className="hover:text-blue-600">
-            Perfil
-          </NavLink>
-        </nav>
-
-        {/* 🔸 Iconos */}
-        <div className="flex items-center gap-5 text-gray-700">
-          <button className="hover:text-blue-600">
-            <FaSearch className="w-5 h-5" />
-          </button>
-          <Link to="/cart" className="relative hover:text-blue-600">
-            <FaShoppingCart className="w-5 h-5" />
-            <span className="absolute -top-2 -right-3 bg-blue-600 text-white text-xs rounded-full px-1.5">
-              2
-            </span>
-          </Link>
-          <Link to="/profile" className="hover:text-blue-600">
-            <FaUser className="w-5 h-5" />
-          </Link>
-        </div>
-      </div>
-    </header>
+    <CartContext.Provider value={value}>{children}</CartContext.Provider>
   );
+};
+
+export const useCart = () => {
+  const context = useContext(CartContext);
+  if (!context) {
+    throw new Error("useCart debe ser usado dentro de CartProvider");
+  }
+  return context;
 };

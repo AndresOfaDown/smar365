@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import axios from "axios";
-import { useParams } from "react-router-dom"; // Para obtener el id del producto desde la URL
+import { useParams } from "react-router-dom";
+import { productosAPI } from "../../../data/sources/api";
 
 export const DetalleProductoPage= () => {
   const { id } = useParams();  // Obtener el id del producto desde la URL
@@ -10,18 +10,18 @@ export const DetalleProductoPage= () => {
   // Cargar los detalles del producto cuando se monta el componente
   const fetchProductoDetalle = async () => {
     try {
-      const res = await axios.get(`http://127.0.0.1:8000/api/productos/${id}/`);
-      setProducto(res.data); // Guardamos los datos del producto en el estado
+      const res = await productosAPI.get(id);
+      setProducto(res.data);
     } catch (err) {
       console.error("Error al cargar el producto:", err);
     } finally {
-      setLoading(false);  // Dejar de mostrar el cargando una vez que la respuesta llegue
+      setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchProductoDetalle(); // Llamada a la API al montar el componente
-  }, [id]);  // Ejecutar cuando el `id` cambia
+    fetchProductoDetalle();
+  }, [id]);
 
   // Mostrar un mensaje de carga mientras se obtienen los detalles
   if (loading) {

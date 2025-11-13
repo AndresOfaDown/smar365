@@ -1,84 +1,137 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import axios from "axios";
+import { FaBolt, FaEnvelope, FaLock } from "react-icons/fa";
 import { toast } from "react-toastify";
+import { usuariosAPI } from "../../../data/sources/api";
 
 export const LoginPage = () => {
   const navigate = useNavigate();
-  const [formData, setFormData] = useState({ email: "", password: "" });
   const [loading, setLoading] = useState(false);
+  const [formData, setFormData] = useState({
+    email: "",
+    password: "",
+  });
 
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    setFormData({
+      ...formData,
+      [name]: value,
+    });
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    try {
-      const res = await axios.post("http://localhost:8000/api/login", formData);
 
-      // Guarda el token (si lo devuelve tu API)
-      if (res.data.access || res.data.token) {
-        localStorage.setItem("token", res.data.access || res.data.token);
-        toast.success("Inicio de sesión exitoso ✅");
-        navigate("/");
+    try {
+      const response = await usuariosAPI.login(formData);
+      
+      // Guardar tokens y datos de usuario en localStorage
+      localStorage.setItem("access", response.data.access);
+      localStorage.setItem("refresh", response.data.refresh);
+      localStorage.setItem("usuario", JSON.stringify(response.data.usuario));
+
+      toast.success("¡Bienvenido! Iniciaste sesión correctamente");
+      
+      // Redirigir según el rol del usuario
+      const rol = response.data.usuario.rol;
+      if (rol === "ADMINISTRADOR" || rol === "ADMIN") {
+        navigate("/admin/dashboard");
       } else {
-        toast.info("Sesión iniciada sin token");
-        navigate("/");
+        navigate("/cliente/home");
       }
-    } catch (err) {
-      console.error(err);
-      toast.error("Credenciales incorrectas ❌");
+    } catch (error) {
+      console.error("Error en login:", error);
+      const errorMessage = error.response?.data?.error || "Error al iniciar sesión";
+      toast.error(errorMessage);
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gradient-to-r from-blue-500 to-indigo-700">
-      <div className="bg-white p-8 rounded-2xl shadow-lg w-full max-w-md">
-        <h2 className="text-2xl font-bold text-center text-gray-800 mb-6">Iniciar Sesión</h2>
-
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block text-gray-600 mb-1">Correo electrónico</label>
-            <input
-              type="email"
-              name="email"
-              value={formData.email}
-              onChange={handleChange}
-              required
-              className="w-full border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center px-4">
+      <div className="w-full max-w-md">
+        {/* Header */}
+        <div className="text-center mb-8">
+          <div className="flex items-center justify-center gap-2 mb-4">
+            <FaBolt className="text-3xl text-yellow-400" />
+            <h1 className="text-3xl font-extrabold text-gray-800">
+              SmartSales<span className="text-blue-600">365</span>
+            </h1>
           </div>
-          <div>
-            <label className="block text-gray-600 mb-1">Contraseña</label>
-            <input
-              type="password"
-              name="password"
-              value={formData.password}
-              onChange={handleChange}
-              required
-              className="w-full border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
+          <p className="text-gray-600">Inicia sesión en tu cuenta</p>
+        </div>
+
+        {/* Formulario */}
+        <div className="bg-white rounded-lg shadow-xl p-8">
+          <form onSubmit={handleSubmit} className="space-y-6">
+            {/* Email */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                <FaEnvelope className="inline mr-2 text-blue-600" />
+                Correo electrónico
+              </label>
+              <input
+                type="email"
+                name="email"
+                value={formData.email}
+                onChange={handleChange}
+                required
+                placeholder="tu@email.com"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 transition"
+              />
+            </div>
+
+            {/* Password */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                <FaLock className="inline mr-2 text-blue-600" />
+                Contraseña
+              </label>
+              <input
+                type="password"
+                name="password"
+                value={formData.password}
+                onChange={handleChange}
+                required
+                placeholder="••••••••"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 transition"
+              />
+            </div>
+
+            {/* Botón */}
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold py-2 rounded-lg hover:shadow-lg transition duration-300 disabled:opacity-50"
+            >
+              {loading ? "Cargando..." : "Iniciar Sesión"}
+            </button>
+          </form>
+
+          {/* Enlace a registro */}
+          <div className="text-center mt-6 text-sm text-gray-600">
+            ¿No tienes cuenta?{" "}
+            <Link
+              to="/register"
+              className="text-blue-600 hover:underline font-semibold"
+            >
+              Regístrate aquí
+            </Link>
           </div>
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition disabled:opacity-50"
-          >
-            {loading ? "Ingresando..." : "Iniciar sesión"}
-          </button>
-        </form>
-
-        <p className="text-sm text-center text-gray-600 mt-4">
-          ¿No tienes cuenta?{" "}
-          <Link to="/register" className="text-blue-600 font-semibold hover:underline">
-            Regístrate aquí
-          </Link>
-        </p>
+          {/* Enlace a home */}
+          <div className="text-center mt-4 text-sm text-gray-600">
+            <Link
+              to="/"
+              className="text-gray-500 hover:text-blue-600 transition"
+            >
+              ← Volver al inicio
+            </Link>
+          </div>
+        </div>
       </div>
     </div>
   );

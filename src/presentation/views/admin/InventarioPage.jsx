@@ -1,22 +1,18 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
 import { toast } from "react-toastify";
 import { FaPlus, FaSave } from "react-icons/fa";
+import { api, productosAPI } from "../../../data/sources/api";
 
 export const InventarioPage = () => {
-  // Estado para la lista de inventario existente
   const [inventario, setInventario] = useState([]);
-  // Estado para la lista de productos (para el dropdown de "Crear")
   const [productos, setProductos] = useState([]);
   
-  // Estado para el formulario de "Crear"
   const [createForm, setCreateForm] = useState({
-    producto: "", // ID del producto
+    producto: "",
     cantidad: "",
   });
   
   const [loading, setLoading] = useState(true);
-  const token = localStorage.getItem("access");
 
   // Cargar inventario y productos al montar la página
   useEffect(() => {
@@ -24,19 +20,12 @@ export const InventarioPage = () => {
       setLoading(true);
       try {
         const [inventarioRes, productosRes] = await Promise.all([
-          axios.get("http://127.0.0.1:8000/api/inventario/", {
-            headers: { Authorization: `Bearer ${token}` },
-          }),
-          axios.get("http://127.0.0.1:8000/api/productos/", { // Asumo esta ruta para listar productos
-            headers: { Authorization: `Bearer ${token}` },
-          }),
+          api.get("inventario/"),
+          productosAPI.list(),
         ]);
         
-        // Asumo que 'listar_inventario' devuelve [{id, producto_nombre, cantidad}]
-        // O [{id, producto: {id, nombre}, cantidad}]
-        // O [{id, producto: "Nombre Producto", cantidad: 10}] (basado en 'listar_garantias')
-        setInventario(inventarioRes.data); 
-        setProductos(productosRes.data); // Lista de todos los productos
+        setInventario(inventarioRes.data);
+        setProductos(productosRes.data);
 
       } catch (err) {
         console.error("Error al cargar datos:", err);
@@ -46,7 +35,7 @@ export const InventarioPage = () => {
       }
     };
     fetchData();
-  }, [token]);
+  }, []);
 
   // --- LÓGICA DE CREAR INVENTARIO ---
 
@@ -64,15 +53,12 @@ export const InventarioPage = () => {
     };
 
     try {
-      const res = await axios.post(
-        "http://127.0.0.1:8000/api/inventario/crear/",
-        dataAEnviar,
-        { headers: { Authorization: `Bearer ${token}` } }
+      const res = await api.post(
+        "inventario/crear/",
+        dataAEnviar
       );
       
-      // Asumo que la API devuelve el objeto creado, (ej: {id, producto: "Nombre", cantidad})
-      // o { mensaje: "...", inventario: {...} } como en 'crear_garantia'
-      const nuevoInventario = res.data.inventario || res.data; 
+      const nuevoInventario = res.data.inventario || res.data;
 
       setInventario((prev) => [...prev, nuevoInventario]);
       toast.success(res.data.mensaje || "Inventario creado ✅");
@@ -90,7 +76,7 @@ export const InventarioPage = () => {
     setInventario((prevInventario) =>
       prevInventario.map((item) =>
         item.id === inventarioId
-          ? { ...item, cantidad: parseInt(nuevaCantidad) || 0 } // Actualiza localmente
+          ? { ...item, cantidad: parseInt(nuevaCantidad) || 0 }
           : item
       )
     );
@@ -99,16 +85,14 @@ export const InventarioPage = () => {
   // Llama a la API para guardar el cambio de cantidad
   const handleUpdateSubmit = async (inventarioId, cantidad) => {
     try {
-      await axios.put(
-        `http://127.0.0.1:8000/api/inventario/actualizar/${inventarioId}/`,
-        { cantidad: parseInt(cantidad) }, // La API 'actualizar' solo necesita la cantidad
-        { headers: { Authorization: `Bearer ${token}` } }
+      await api.put(
+        `inventario/actualizar/${inventarioId}/`,
+        { cantidad: parseInt(cantidad) }
       );
       toast.success("Stock actualizado correctamente ✅");
     } catch (err) {
       console.error("Error al actualizar inventario:", err);
       toast.error(err.response?.data?.error || "Error al actualizar stock ❌");
-      // Opcional: Volver a cargar los datos para revertir el cambio local si falla
       // fetchInventario(); 
     }
   };

@@ -1,23 +1,18 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
 import { toast } from "react-toastify";
 import { Link } from "react-router-dom";
+import { api } from "../../../data/sources/api";
 
 export const ProductosConDescuentoPage = () => {
   const [productos, setProductos] = useState([]);
-  // --- CAMBIO: Eliminado el estado 'descuentos' ---
   const [loading, setLoading] = useState(true);
-  const token = localStorage.getItem("access");
 
   useEffect(() => {
     const fetchProductosConDescuento = async () => {
       setLoading(true);
       try {
-        // --- CAMBIO: Solo hacemos UNA petición ---
-        // Tu API ya filtra por fecha, ¡es perfecto!
-        const productosRes = await axios.get(
-          "http://127.0.0.1:8000/api/productos/con-descuento/",
-          { headers: { Authorization: `Bearer ${token}` } }
+        const productosRes = await api.get(
+          "productos/con-descuento/"
         );
         setProductos(productosRes.data);
       } catch (err) {
@@ -29,10 +24,7 @@ export const ProductosConDescuentoPage = () => {
     };
 
     fetchProductosConDescuento();
-  }, [token]);
-
-  // --- CAMBIO: Función 'calcularPrecioFinal' eliminada ---
-  // Ahora calculamos todo directamente en el map.
+  }, []);
 
   return (
     <div className="container mx-auto p-6">

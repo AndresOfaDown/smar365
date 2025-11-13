@@ -1,25 +1,20 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
 import { toast } from "react-toastify";
 import { FaTools } from "react-icons/fa";
+import { api, tecnicosAPI } from "../../../data/sources/api";
 
 export const MantenimientosPage = () => {
   const [mantenimientos, setMantenimientos] = useState([]);
-  const [tecnicos, setTecnicos] = useState([]); // Estado para la lista de técnicos
+  const [tecnicos, setTecnicos] = useState([]);
   const [loading, setLoading] = useState(true);
-  const token = localStorage.getItem("access");
 
   useEffect(() => {
-    const fetchData = async () => { // <--- La función se llama fetchData
+    const fetchData = async () => {
       setLoading(true);
       try {
         const [mantenimientosRes, tecnicosRes] = await Promise.all([
-          axios.get("http://127.0.0.1:8000/api/mantenimientos/", {
-            headers: { Authorization: `Bearer ${token}` },
-          }),
-          axios.get("http://127.0.0.1:8000/api/tecnicos/", {
-            headers: { Authorization: `Bearer ${token}` },
-          }),
+          api.get("mantenimientos/"),
+          tecnicosAPI.list(),
         ]);
 
         setMantenimientos(mantenimientosRes.data);
@@ -32,31 +27,25 @@ export const MantenimientosPage = () => {
       }
     };
 
-    fetchData(); // <--- CORRECCIÓN 1: La llamada ahora es 'fetchData()'
-  }, [token]);
+    fetchData();
+  }, []);
 
   // Función para manejar la asignación de técnico
   const handleAsignarTecnico = async (mantenimientoId, tecnicoId) => {
     const dataAEnviar = {
-      // --- ¡CAMBIO AQUÍ! ---
-      // Tu API (views.py L:26) espera la clave 'tecnico', no 'tecnico_id'
       tecnico: tecnicoId === "" ? null : parseInt(tecnicoId),
     };
 
     try {
-      // --- CORRECCIÓN 2: Se cambió .post por .put para el error 405 ---
-      const res = await axios.put(
-        `http://127.0.0.1:8000/api/mantenimientos/${mantenimientoId}/asignar-tecnico/`,
-        dataAEnviar,
-        { headers: { Authorization: `Bearer ${token}` } }
+      const res = await api.put(
+        `mantenimientos/${mantenimientoId}/asignar-tecnico/`,
+        dataAEnviar
       );
 
-      // Actualizamos el estado local para que la UI refleje el cambio
       setMantenimientos((prevMantenimientos) =>
         prevMantenimientos.map((m) => {
           if (m.id === mantenimientoId) {
-            // Asumo que la API devuelve el mantenimiento actualizado
-            return res.data.mantenimiento || res.data; // Sé flexible con la respuesta
+            return res.data.mantenimiento || res.data;
           }
           return m;
         })

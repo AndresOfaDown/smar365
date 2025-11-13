@@ -1,19 +1,16 @@
 import { useEffect, useState } from "react";
-import axios from "axios";
 import { toast } from "react-toastify";
 import { FaBell } from "react-icons/fa";
+import { api } from "../../../data/sources/api";
 
 export const BitacoraPage = () => {
   const [bitacora, setBitacora] = useState([]);
   const [filtro, setFiltro] = useState("");
-  const token = localStorage.getItem("access");
 
   // 🔹 Obtener registros de bitácora
   const fetchBitacora = async () => {
     try {
-      const res = await axios.get("http://127.0.0.1:8000/api/getBitacora/", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const res = await api.get("getBitacora/");
       setBitacora(res.data);
     } catch (err) {
       console.error(err);
