@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import { FaPlus, FaTrash } from "react-icons/fa";
-import { api, usuariosAPI } from "../../../data/sources/api";
+import * as NotificacionService from "../../../Services/NotificacionService";
+import * as UsuarioService from "../../../Services/UsuarioService";
 
 export const NotificacionesPage = () => {
   const [notificaciones, setNotificaciones] = useState([]);
@@ -15,7 +16,7 @@ export const NotificacionesPage = () => {
   // 🔹 Cargar notificaciones
   const fetchNotificaciones = async () => {
     try {
-      const res = await api.get("notificaciones/");
+      const res = await NotificacionService.listNotificaciones();
       setNotificaciones(res.data);
     } catch (err) {
       toast.error("Error al cargar notificaciones ❌");
@@ -25,7 +26,7 @@ export const NotificacionesPage = () => {
   // 🔹 Cargar usuarios
   const fetchUsuarios = async () => {
     try {
-      const res = await usuariosAPI.list();
+      const res = await UsuarioService.listUsers();
       setUsuarios(res.data);
     } catch (err) {
       toast.error("Error al cargar usuarios ❌");
@@ -50,14 +51,11 @@ export const NotificacionesPage = () => {
         return;
       }
 
-      await api.post(
-        "notificaciones/crear/",
-        {
-          titulo: form.titulo,
-          mensaje: form.mensaje,
-          usuario_id: parseInt(form.usuario_id),
-        }
-      );
+      await NotificacionService.createNotificacion({
+        titulo: form.titulo,
+        mensaje: form.mensaje,
+        usuario_id: parseInt(form.usuario_id),
+      });
 
       toast.success("Notificación enviada ✅");
       setForm({ titulo: "", mensaje: "", usuario_id: "" });
@@ -72,7 +70,7 @@ export const NotificacionesPage = () => {
   const handleDelete = async (id) => {
     if (!confirm("¿Eliminar esta notificación?")) return;
     try {
-      await api.delete(`notificaciones/${id}/eliminar/`);
+      await NotificacionService.deleteNotificacion(id);
       toast.success("Notificación eliminada ✅");
       fetchNotificaciones();
     } catch (err) {

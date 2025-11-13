@@ -5,7 +5,7 @@ import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
   BarChart, Bar, PieChart, Pie, Cell,
 } from "recharts";
-import { api } from "../../../data/sources/api";
+import api from "../../../api/axiosConfig";
 
 const PREDICCION_API_URL_BASE = "ia";
 const REPORTES_API_URL_BASE = "reportes/dinamico/";
@@ -69,7 +69,7 @@ export const DashboardPage = () => {
   // Cargar todos los datos al montar el componente
   useEffect(() => {
     fetchAllDashboardData();
-  }, [token]);
+  }, []);
 
   // --- 2. Acción de Entrenar (POST /entrenar/) ---
   const handleEntrenar = async () => {

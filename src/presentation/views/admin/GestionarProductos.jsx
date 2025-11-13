@@ -1,7 +1,11 @@
 import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import { FaEdit, FaTrash, FaPlus, FaSearch, FaBox } from "react-icons/fa";
-import { productosAPI, categoriasAPI, marcasAPI, descuentosAPI, garantiasAPI } from "../../../data/sources/api";
+import * as ProductoService from "../../../Services/ProductoService";
+import * as CategoriaService from "../../../Services/CategoriaService";
+import * as MarcaService from "../../../Services/MarcaService";
+import * as DescuentoService from "../../../Services/DescuentoService";
+import * as GarantiaService from "../../../Services/GarantiaService";
 import { ImageUploader } from "../../../components/ImageUploader";
 
 export const GestionarProductos = () => {
@@ -37,11 +41,11 @@ export const GestionarProductos = () => {
     setLoading(true);
     try {
       const [productosRes, categoriasRes, marcasRes, descuentosRes, garantiasRes] = await Promise.all([
-        productosAPI.list(),
-        categoriasAPI.list(),
-        marcasAPI.list(),
-        descuentosAPI.list(),
-        garantiasAPI.list(),
+        ProductoService.listProductos(),
+        CategoriaService.listCategorias(),
+        MarcaService.listMarcas(),
+        DescuentoService.listDescuentos(),
+        GarantiaService.listGarantias(),
       ]);
       setProductos(productosRes.data);
       setFilteredProductos(productosRes.data);
@@ -112,7 +116,7 @@ export const GestionarProductos = () => {
   // 🔹 Abrir formulario para editar
   const handleOpenEdit = async (id) => {
     try {
-      const res = await productosAPI.get(id);
+      const res = await ProductoService.getProducto(id);
       setFormData({
         nombre: res.data.nombre || "",
         precio: res.data.precio || "",
@@ -155,7 +159,7 @@ export const GestionarProductos = () => {
     try {
       if (editingId) {
         // Actualizar
-        await productosAPI.update(editingId, productoData);
+        await ProductoService.updateProducto(editingId, productoData);
         setProductos(
           productos.map((p) =>
             p.id === editingId ? { ...p, ...productoData } : p
@@ -164,7 +168,7 @@ export const GestionarProductos = () => {
         toast.success("Producto actualizado correctamente ✅");
       } else {
         // Crear
-        const res = await productosAPI.create(productoData);
+        const res = await ProductoService.createProducto(productoData);
         setProductos([...productos, res.data]);
         toast.success("Producto creado correctamente ✅");
       }
@@ -183,7 +187,7 @@ export const GestionarProductos = () => {
     if (!confirm("¿Estás seguro de que deseas eliminar este producto?")) return;
 
     try {
-      await productosAPI.delete(id);
+      await ProductoService.deleteProducto(id);
       setProductos(productos.filter((p) => p.id !== id));
       toast.success("Producto eliminado correctamente ✅");
     } catch (err) {

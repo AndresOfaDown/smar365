@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { toast } from "react-toastify";
 import { FaPlus, FaTrash, FaEdit } from "react-icons/fa";
-import { garantiasAPI } from "../../../data/sources/api";
+import * as GarantiaService from "../../../Services/GarantiaService";
 
 export const GarantiasPage = () => {
   const [garantias, setGarantias] = useState([]);
@@ -19,7 +19,7 @@ export const GarantiasPage = () => {
   const fetchGarantias = async () => {
     setLoading(true);
     try {
-      const res = await garantiasAPI.list();
+      const res = await GarantiaService.listGarantias();
       setGarantias(res.data);
     } catch (err) {
       console.error("Error al cargar garantías:", err);
@@ -60,7 +60,7 @@ export const GarantiasPage = () => {
     try {
       if (editingId) {
         // Actualizar
-        await garantiasAPI.update(editingId, dataAEnviar);
+        await GarantiaService.updateGarantia(editingId, dataAEnviar);
         setGarantias(
           garantias.map((g) =>
             g.id === editingId ? { ...g, ...dataAEnviar } : g
@@ -70,7 +70,7 @@ export const GarantiasPage = () => {
         setEditingId(null);
       } else {
         // Crear
-        const res = await garantiasAPI.create(dataAEnviar);
+        const res = await GarantiaService.createGarantia(dataAEnviar);
         setGarantias([...garantias, res.data]);
         toast.success("Garantía creada correctamente ✅");
       }
@@ -114,7 +114,7 @@ export const GarantiasPage = () => {
     if (!confirm("¿Estás seguro de que deseas eliminar esta garantía?")) return;
 
     try {
-      await garantiasAPI.delete(id);
+      await GarantiaService.deleteGarantia(id);
       setGarantias(garantias.filter((g) => g.id !== id));
       toast.success("Garantía eliminada correctamente ✅");
     } catch (err) {

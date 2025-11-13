@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react';
 import { toast } from 'react-toastify';
 import { FaSearch, FaBox } from 'react-icons/fa';
-import { productosAPI, categoriasAPI, marcasAPI } from '../../../../data/sources/api';
+import * as ProductoService from '../../../../Services/ProductoService';
+import * as CategoriaService from '../../../../Services/CategoriaService';
+import * as MarcaService from '../../../../Services/MarcaService';
 import { ProductCard } from '../components/ProductCard';
 
 export const ProductListPage = () => {
@@ -19,9 +21,9 @@ export const ProductListPage = () => {
       setLoading(true);
       try {
         const [productosRes, categoriasRes, marcasRes] = await Promise.all([
-          productosAPI.catalogo(),
-          categoriasAPI.list(),
-          marcasAPI.list(),
+          ProductoService.catalogo(),
+          CategoriaService.listCategorias(),
+          MarcaService.listMarcas(),
         ]);
         setProductos(productosRes.data);
         setFilteredProductos(productosRes.data);

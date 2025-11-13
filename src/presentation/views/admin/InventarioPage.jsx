@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { toast } from "react-toastify";
 import { FaPlus, FaSave } from "react-icons/fa";
-import { api, productosAPI } from "../../../data/sources/api";
+import api from "../../../api/axiosConfig";
+import * as ProductoService from "../../../Services/ProductoService";
 
 export const InventarioPage = () => {
   const [inventario, setInventario] = useState([]);
@@ -21,7 +22,7 @@ export const InventarioPage = () => {
       try {
         const [inventarioRes, productosRes] = await Promise.all([
           api.get("inventario/"),
-          productosAPI.list(),
+          ProductoService.listProductos(),
         ]);
         
         setInventario(inventarioRes.data);

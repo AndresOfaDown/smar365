@@ -2,7 +2,8 @@ import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { FaBolt, FaEnvelope, FaLock, FaUser, FaPhone, FaMapMarkerAlt } from "react-icons/fa";
 import { toast } from "react-toastify";
-import { usuariosAPI, rolesAPI } from "../../../data/sources/api";
+import * as AuthService from "../../../Services/AuthService";
+import * as RolService from "../../../Services/RolService";
 
 export const RegisterPage = () => {
   const navigate = useNavigate();
@@ -14,14 +15,14 @@ export const RegisterPage = () => {
     password: "",
     telefono: "",
     direccion: "",
-    rol: 2, // Por defecto Cliente
+    // rol es opcional - el backend asignará Cliente por defecto si no se envía
   });
 
   // Cargar roles al montar
   useEffect(() => {
     const fetchRoles = async () => {
       try {
-        const response = await rolesAPI.list();
+        const response = await RolService.listRoles();
         setRoles(response.data);
       } catch (error) {
         console.error("Error cargando roles:", error);
@@ -48,7 +49,13 @@ export const RegisterPage = () => {
     setLoading(true);
 
     try {
-      const response = await usuariosAPI.create(formData);
+      // Si no se seleccionó rol, no lo enviamos (backend usará Cliente por defecto)
+      const dataToSend = { ...formData };
+      if (!dataToSend.rol) {
+        delete dataToSend.rol;
+      }
+      
+      const response = await AuthService.register(dataToSend);
 
       toast.success("¡Registro exitoso! Redirigiendo a login...");
 

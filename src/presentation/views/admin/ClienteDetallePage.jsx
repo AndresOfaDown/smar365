@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { toast } from "react-toastify";
 import { useParams, Link } from "react-router-dom";
 import { FaEdit, FaUserCircle } from "react-icons/fa";
-import { clientesAPI } from "../../../data/sources/api";
+import * as ClienteService from "../../../Services/ClienteService";
 
 export const ClienteDetallePage = () => {
   const { id } = useParams();
@@ -17,7 +17,7 @@ export const ClienteDetallePage = () => {
   const fetchCliente = async () => {
     setLoading(true);
     try {
-      const res = await clientesAPI.get(id);
+      const res = await ClienteService.getCliente(id);
       setCliente(res.data);
     } catch (err) {
       console.error("Error al cargar cliente:", err);

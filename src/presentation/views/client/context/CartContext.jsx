@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, useEffect } from "react";
 import { toast } from 'react-toastify';
-import { carritoAPI } from '../../../../data/sources/api';
+import { carritoAPI } from '../../../../api/api';
 import { useAuth } from '../../../../hooks/useAuth';
 
 const CartContext = createContext();

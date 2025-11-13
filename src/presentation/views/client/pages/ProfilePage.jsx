@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { toast } from 'react-toastify';
 import { Link } from 'react-router-dom';
 import { FaUserCircle, FaEdit, FaEnvelope, FaPhone } from 'react-icons/fa';
-import { api, usuariosAPI } from '../../../../data/sources/api';
+import api from '../../../../api/axiosConfig';
+import * as UsuarioService from '../../../../Services/UsuarioService';
 import { ImageUploader } from '../../../../components/ImageUploader';
 
 export const ProfilePage = () => {
@@ -55,7 +56,7 @@ export const ProfilePage = () => {
   const handleUpdate = async (e) => {
     e.preventDefault();
     try {
-      const res = await usuariosAPI.update(user.id, formData);
+      const res = await UsuarioService.updateUser(user.id, formData);
       setUser(res.data);
       toast.success("Perfil actualizado correctamente ✅");
       setIsEditing(false);

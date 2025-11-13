@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import { productosAPI } from "../../../data/sources/api";
+import * as ProductoService from "../../../Services/ProductoService";
 
 export const DetalleProductoPage= () => {
   const { id } = useParams();  // Obtener el id del producto desde la URL
@@ -10,7 +10,7 @@ export const DetalleProductoPage= () => {
   // Cargar los detalles del producto cuando se monta el componente
   const fetchProductoDetalle = async () => {
     try {
-      const res = await productosAPI.get(id);
+      const res = await ProductoService.getProducto(id);
       setProducto(res.data);
     } catch (err) {
       console.error("Error al cargar el producto:", err);

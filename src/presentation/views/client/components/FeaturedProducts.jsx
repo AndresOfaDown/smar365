@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import { toast } from 'react-toastify';
-import { productosAPI, categoriasAPI, marcasAPI } from '../../../../data/sources/api';
+import * as ProductoService from '../../../../Services/ProductoService';
+import * as CategoriaService from '../../../../Services/CategoriaService';
+import * as MarcaService from '../../../../Services/MarcaService';
 import { ProductCard } from './ProductCard';
 import { FaFire } from 'react-icons/fa';
 
@@ -15,9 +17,9 @@ export const FeaturedProducts = () => {
       setLoading(true);
       try {
         const [productosRes, categoriasRes, marcasRes] = await Promise.all([
-          productosAPI.catalogo(),
-          categoriasAPI.list(),
-          marcasAPI.list(),
+          ProductoService.catalogo(),
+          CategoriaService.listCategorias(),
+          MarcaService.listMarcas(),
         ]);
         
         // Tomar solo los primeros 4 productos como destacados

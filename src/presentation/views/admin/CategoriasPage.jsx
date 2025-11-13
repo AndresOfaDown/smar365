@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { FaPlus, FaTrash, FaEdit } from "react-icons/fa";
 import { toast } from "react-toastify";
-import { categoriasAPI } from "../../../data/sources/api";
+import * as CategoriaService from "../../../Services/CategoriaService";
 
 export const CategoriasPage = () => {
   const [categorias, setCategorias] = useState([]);
@@ -14,7 +14,7 @@ export const CategoriasPage = () => {
   const fetchCategorias = async () => {
     setLoading(true);
     try {
-      const res = await categoriasAPI.list();
+      const res = await CategoriaService.listCategorias();
       setCategorias(res.data);
     } catch (err) {
       console.error("Error al cargar categorías:", err);
@@ -36,7 +36,7 @@ export const CategoriasPage = () => {
     }
 
     try {
-      const res = await categoriasAPI.create({ nombre: nuevaCategoria });
+      const res = await CategoriaService.createCategoria({ nombre: nuevaCategoria });
       toast.success("Categoría creada correctamente ✅");
       setCategorias([...categorias, res.data]);
       setNuevaCategoria("");
@@ -86,7 +86,7 @@ export const CategoriasPage = () => {
     if (!confirm("¿Estás seguro de que deseas eliminar esta categoría?")) return;
     
     try {
-      await categoriasAPI.delete(id);
+      await CategoriaService.deleteCategoria(id);
       toast.success("Categoría eliminada correctamente ✅");
       setCategorias(categorias.filter((categoria) => categoria.id !== id));
     } catch (err) {

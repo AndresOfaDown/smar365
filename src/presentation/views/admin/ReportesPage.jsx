@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { toast } from "react-toastify";
 import { FaFilePdf, FaFileExcel, FaChartBar, FaMicrophone } from "react-icons/fa";
-import { api } from "../../../data/sources/api";
+import api from "../../../api/axiosConfig";
 
 export const ReportesPage = () => {
   const [prompt, setPrompt] = useState("");

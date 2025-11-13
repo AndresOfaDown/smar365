@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const API_BASE_URL = "http://127.0.0.1:8000/api/";
+const API_BASE_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000/api/";
 
 // Crear instancia de axios con configuración base
 export const api = axios.create({
@@ -19,23 +19,60 @@ api.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
+// Interceptor para manejar errores de respuesta
+api.interceptors.response.use(
+  (response) => response,
+  async (error) => {
+    const originalRequest = error.config;
+
+    // Si el error es 401 y no hemos intentado refrescar el token
+    if (error.response?.status === 401 && !originalRequest._retry) {
+      originalRequest._retry = true;
+
+      try {
+        const refreshToken = localStorage.getItem("refresh");
+        if (refreshToken) {
+          const response = await axios.post(`${API_BASE_URL}usuarios/api/token/refresh/`, {
+            refresh: refreshToken,
+          });
+          
+          const { access } = response.data;
+          localStorage.setItem("access", access);
+          
+          // Reintentar la petición original con el nuevo token
+          originalRequest.headers.Authorization = `Bearer ${access}`;
+          return api(originalRequest);
+        }
+      } catch (refreshError) {
+        // Si falla el refresh, limpiar tokens y redirigir al login
+        localStorage.removeItem("access");
+        localStorage.removeItem("refresh");
+        window.location.href = "/login";
+        return Promise.reject(refreshError);
+      }
+    }
+
+    return Promise.reject(error);
+  }
+);
+
 // ========== AUTENTICACIÓN ==========
 export const authAPI = {
-  login: (data) => api.post("login/", data),
-  register: (data) => api.post("registro/", data),
-  refreshToken: (refreshToken) => api.post("api/token/refresh/", { refresh: refreshToken }),
+  login: (data) => api.post("usuarios/login/", data),
+  register: (data) => api.post("usuarios/registro/", data),
+  refreshToken: (refreshToken) => api.post("usuarios/api/token/refresh/", { refresh: refreshToken }),
 };
 
 // ========== USUARIOS ==========
 export const usuariosAPI = {
-  list: () => api.get("getUser/"),
-  login: (data) => api.post("login/", data),
-  create: (data) => api.post("registro/", data),
-  update: (id, data) => api.put(`user/${id}/update/`, data),
-  delete: (id) => api.delete(`${id}/elimUser/`),
-  getProfile: () => api.get("perfil/me/"),
-  updateProfile: (data) => api.put("user/editar/", data),
-  getInfo: () => api.get("user/info/"),
+  list: () => api.get("usuarios/getUser/"),
+  login: (data) => api.post("usuarios/login/", data),
+  create: (data) => api.post("usuarios/registro/", data),
+  update: (id, data) => api.put(`usuarios/user/${id}/update/`, data),
+  delete: (id) => api.delete(`usuarios/${id}/elimUser/`),
+  getProfile: () => api.get("usuarios/perfil/me/"),
+  updateProfile: (data) => api.put("usuarios/user/editar/", data),
+  getInfo: () => api.get("usuarios/user/info/"),
 };
 
 // ========== PRODUCTOS ==========
@@ -107,36 +144,36 @@ export const ventasAPI = {
 
 // ========== ROLES ==========
 export const rolesAPI = {
-  list: () => api.get("rol/"),
-  create: (data) => api.post("rol/crear/", data),
-  delete: (id) => api.delete(`rol/eliminar/${id}/`),
+  list: () => api.get("usuarios/rol/"),
+  create: (data) => api.post("usuarios/rol/crear/", data),
+  delete: (id) => api.delete(`usuarios/rol/eliminar/${id}/`),
 };
 
 // ========== PERMISOS ==========
 export const permisosAPI = {
-  list: () => api.get("permisos/"),
-  create: (data) => api.post("permisos/crear/", data),
-  delete: (id) => api.delete(`permisos/eliminar/${id}/`),
-  getByRole: (rolId) => api.get(`${rolId}/rol_id/rolP/`),
-  updateRolePermissions: (data) => api.put("actP/", data),
-  asignar: (data) => api.post("permisos/asignar/", data),
+  list: () => api.get("usuarios/permisos/"),
+  create: (data) => api.post("usuarios/permisos/crear/", data),
+  delete: (id) => api.delete(`usuarios/permisos/eliminar/${id}/`),
+  getByRole: (rolId) => api.get(`usuarios/${rolId}/rol_id/rolP/`),
+  updateRolePermissions: (data) => api.put("usuarios/actP/", data),
+  asignar: (data) => api.post("usuarios/permisos/asignar/", data),
 };
 
 // ========== CLIENTES ==========
 export const clientesAPI = {
-  list: () => api.get("clientes/"),
-  get: (id) => api.get(`cliente/${id}/info/`),
-  update: (id, data) => api.put(`user/${id}/update/`, data),
-  delete: (id) => api.delete(`${id}/elimUser/`),
+  list: () => api.get("usuarios/clientes/"),
+  get: (id) => api.get(`usuarios/cliente/${id}/info/`),
+  update: (id, data) => api.put(`usuarios/user/${id}/update/`, data),
+  delete: (id) => api.delete(`usuarios/${id}/elimUser/`),
 };
 
 // ========== TÉCNICOS ==========
 export const tecnicosAPI = {
-  list: () => api.get("tecnicos/"),
-  get: (id) => api.get(`tecnicos/${id}/info/`),
-  create: (data) => api.post("tecnicos/crear/", data),
-  update: (id, data) => api.put(`tecnico/${id}/update/`, data),
-  delete: (id) => api.delete(`tecnico/${id}/eliminar/`),
+  list: () => api.get("usuarios/tecnicos/"),
+  get: (id) => api.get(`usuarios/tecnicos/${id}/info/`),
+  create: (data) => api.post("usuarios/tecnicos/crear/", data),
+  update: (id, data) => api.put(`usuarios/tecnico/${id}/update/`, data),
+  delete: (id) => api.delete(`usuarios/tecnico/${id}/eliminar/`),
 };
 
 // ========== MANTENIMIENTOS ==========
@@ -155,15 +192,15 @@ export const reportesAPI = {
 
 // ========== BITÁCORA ==========
 export const bitacoraAPI = {
-  list: () => api.get("getBitacora/"),
+  list: () => api.get("usuarios/getBitacora/"),
 };
 
 // ========== NOTIFICACIONES ==========
 export const notificacionesAPI = {
-  list: (userId = null) => api.get("notificaciones/", { params: userId ? { user_id: userId } : {} }),
-  create: (data) => api.post("notificaciones/crear/", data),
-  delete: (id) => api.delete(`notificaciones/${id}/eliminar/`),
-  updateFCMToken: (token) => api.post("fcm/update/", { fcm_token: token }),
+  list: (userId = null) => api.get("usuarios/notificaciones/", { params: userId ? { user_id: userId } : {} }),
+  create: (data) => api.post("usuarios/notificaciones/crear/", data),
+  delete: (id) => api.delete(`usuarios/notificaciones/${id}/eliminar/`),
+  updateFCMToken: (token) => api.post("usuarios/fcm/update/", { fcm_token: token }),
 };
 
 // ========== PREDICCIONES (IA) ==========

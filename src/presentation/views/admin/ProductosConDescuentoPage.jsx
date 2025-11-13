@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { toast } from "react-toastify";
 import { Link } from "react-router-dom";
-import { api } from "../../../data/sources/api";
+import * as ProductoService from "../../../Services/ProductoService";
 
 export const ProductosConDescuentoPage = () => {
   const [productos, setProductos] = useState([]);
@@ -11,9 +11,7 @@ export const ProductosConDescuentoPage = () => {
     const fetchProductosConDescuento = async () => {
       setLoading(true);
       try {
-        const productosRes = await api.get(
-          "productos/con-descuento/"
-        );
+        const productosRes = await ProductoService.conDescuento();
         setProductos(productosRes.data);
       } catch (err) {
         console.error("Error al cargar datos:", err);

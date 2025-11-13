@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { FaPlus, FaTrash, FaEdit } from "react-icons/fa";
 import { toast } from "react-toastify";
-import { marcasAPI } from "../../../data/sources/api";
+import * as MarcaService from "../../../Services/MarcaService";
 
 export const MarcasPage = () => {
   const [marcas, setMarcas] = useState([]);
@@ -14,7 +14,7 @@ export const MarcasPage = () => {
   const fetchMarcas = async () => {
     setLoading(true);
     try {
-      const res = await marcasAPI.list();
+      const res = await MarcaService.listMarcas();
       setMarcas(res.data);
     } catch (err) {
       console.error("Error al cargar marcas:", err);
@@ -36,7 +36,7 @@ export const MarcasPage = () => {
     }
 
     try {
-      const res = await marcasAPI.create({ nombre: nuevaMarca });
+      const res = await MarcaService.createMarca({ nombre: nuevaMarca });
       toast.success("Marca creada correctamente ✅");
       setMarcas([...marcas, res.data]);
       setNuevaMarca("");
@@ -85,7 +85,7 @@ export const MarcasPage = () => {
     if (!confirm("¿Estás seguro de que deseas eliminar esta marca?")) return;
     
     try {
-      await marcasAPI.delete(id);
+      await MarcaService.deleteMarca(id);
       toast.success("Marca eliminada correctamente ✅");
       setMarcas(marcas.filter((marca) => marca.id !== id));
     } catch (err) {

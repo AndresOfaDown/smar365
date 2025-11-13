@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { toast } from "react-toastify";
 import { FaTools } from "react-icons/fa";
-import { api, tecnicosAPI } from "../../../data/sources/api";
+import api from "../../../api/axiosConfig";
+import * as TecnicoService from "../../../Services/TecnicoService";
 
 export const MantenimientosPage = () => {
   const [mantenimientos, setMantenimientos] = useState([]);
@@ -14,7 +15,7 @@ export const MantenimientosPage = () => {
       try {
         const [mantenimientosRes, tecnicosRes] = await Promise.all([
           api.get("mantenimientos/"),
-          tecnicosAPI.list(),
+          TecnicoService.listTecnicos(),
         ]);
 
         setMantenimientos(mantenimientosRes.data);

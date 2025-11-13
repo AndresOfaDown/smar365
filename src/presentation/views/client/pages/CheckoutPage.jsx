@@ -9,7 +9,7 @@ import {
   FaArrowLeft
 } from 'react-icons/fa';
 import { useCart } from '../context/CartContext';
-import { ventasAPI } from '../../../../data/sources/api';
+import * as VentaService from '../../../../Services/VentaService';
 
 export const CheckoutPage = () => {
   const navigate = useNavigate();
@@ -67,7 +67,7 @@ export const CheckoutPage = () => {
         notas: formData.notas
       };
 
-      const response = await ventasAPI.crearPago(pagoData);
+      const response = await VentaService.crearPago(pagoData);
       
       toast.success('¡Compra realizada con éxito! 🎉');
       clearCart();

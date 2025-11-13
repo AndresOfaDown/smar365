@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { toast } from "react-toastify";
 import { Link } from "react-router-dom";
 import { FaHardHat, FaPlus, FaTrash } from "react-icons/fa";
-import { tecnicosAPI } from "../../../data/sources/api";
+import * as TecnicoService from "../../../Services/TecnicoService";
 
 export const TecnicosPage = () => {
   const [tecnicos, setTecnicos] = useState([]);
@@ -19,7 +19,7 @@ export const TecnicosPage = () => {
     const fetchTecnicos = async () => {
       setLoading(true);
       try {
-        const res = await tecnicosAPI.list();
+        const res = await TecnicoService.listTecnicos();
         setTecnicos(res.data);
       } catch (err) {
         console.error("Error al cargar técnicos:", err);
@@ -40,7 +40,7 @@ export const TecnicosPage = () => {
     }
 
     try {
-      const res = await tecnicosAPI.create(formData);
+      const res = await TecnicoService.createTecnico(formData);
       setTecnicos([...tecnicos, res.data]);
       toast.success("Técnico creado correctamente ✅");
       setFormData({ nombre: "", apellido: "", email: "", especialidad: "" });
@@ -55,7 +55,7 @@ export const TecnicosPage = () => {
     if (!confirm("¿Estás seguro de que deseas eliminar este técnico?")) return;
 
     try {
-      await tecnicosAPI.delete(id);
+      await TecnicoService.deleteTecnico(id);
       setTecnicos(tecnicos.filter((t) => t.id !== id));
       toast.success("Técnico eliminado correctamente ✅");
     } catch (err) {

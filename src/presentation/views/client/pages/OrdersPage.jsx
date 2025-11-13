@@ -9,7 +9,7 @@ import {
   FaFileDownload,
   FaEye 
 } from 'react-icons/fa';
-import { ventasAPI } from '../../../../data/sources/api';
+import * as VentaService from '../../../../Services/VentaService';
 import { EmptyState } from '../../../../components/common/EmptyState';
 
 export const OrdersPage = () => {
@@ -20,7 +20,7 @@ export const OrdersPage = () => {
     const cargarOrdenes = async () => {
       setLoading(true);
       try {
-        const response = await ventasAPI.misNotas();
+        const response = await VentaService.getMisNotas();
         setOrdenes(response.data || []);
       } catch (err) {
         console.error('Error al cargar órdenes:', err);
@@ -35,7 +35,7 @@ export const OrdersPage = () => {
 
   const handleDescargarPDF = async (notaId) => {
     try {
-      const response = await ventasAPI.notaPDF(notaId);
+      const response = await VentaService.getNotaPDF(notaId);
       // Crear un enlace temporal para descargar el PDF
       const url = window.URL.createObjectURL(new Blob([response.data], { type: 'application/pdf' }));
       const link = document.createElement('a');

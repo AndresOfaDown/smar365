@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import { FaBell } from "react-icons/fa";
-import { api } from "../../../data/sources/api";
+import * as BitacoraService from "../../../Services/BitacoraService";
 
 export const BitacoraPage = () => {
   const [bitacora, setBitacora] = useState([]);
@@ -10,7 +10,7 @@ export const BitacoraPage = () => {
   // 🔹 Obtener registros de bitácora
   const fetchBitacora = async () => {
     try {
-      const res = await api.get("getBitacora/");
+      const res = await BitacoraService.listBitacora();
       setBitacora(res.data);
     } catch (err) {
       console.error(err);

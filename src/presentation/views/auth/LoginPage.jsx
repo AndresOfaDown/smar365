@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { FaBolt, FaEnvelope, FaLock } from "react-icons/fa";
 import { toast } from "react-toastify";
-import { usuariosAPI } from "../../../data/sources/api";
+import * as AuthService from "../../../Services/AuthService";
 
 export const LoginPage = () => {
   const navigate = useNavigate();
@@ -25,7 +25,7 @@ export const LoginPage = () => {
     setLoading(true);
 
     try {
-      const response = await usuariosAPI.login(formData);
+      const response = await AuthService.login(formData);
       
       // Guardar tokens y datos de usuario en localStorage
       localStorage.setItem("access", response.data.access);

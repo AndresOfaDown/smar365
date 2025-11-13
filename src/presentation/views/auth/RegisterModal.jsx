@@ -1,6 +1,6 @@
 import { useState } from "react";
-import axios from "axios";
 import { toast } from "react-toastify";
+import * as AuthService from "../../../Services/AuthService";
 
 export const RegisterModal = ({ show, onClose }) => {
   const [form, setForm] = useState({
@@ -22,14 +22,15 @@ export const RegisterModal = ({ show, onClose }) => {
       // rol = 2 -> Cliente
       const payload = { ...form, rol: 2 };
 
-      const res = await axios.post("http://127.0.0.1:8000/api/registro/", payload);
+      const res = await AuthService.register(payload);
       toast.success("Cliente registrado exitosamente ✅");
       onClose();
       setForm({ nombre: "", email: "", password: "", telefono: "", direccion: "" });
       console.log("Nuevo cliente:", res.data);
     } catch (err) {
       console.error(err);
-      toast.error("Error al registrar cliente ❌");
+      const errorMessage = err.response?.data?.error || err.response?.data?.mensaje || "Error al registrar cliente";
+      toast.error(errorMessage + " ❌");
     }
   };
 

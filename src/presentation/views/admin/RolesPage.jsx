@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { FaPlus, FaTrash, FaEdit } from "react-icons/fa";
 import { toast } from "react-toastify";
-import { rolesAPI } from "../../../data/sources/api";
+import * as RolService from "../../../Services/RolService";
+import { ConfirmDialog } from "../../components/ConfirmDialog";
 
 export const RolesPage = () => {
   const [roles, setRoles] = useState([]);
@@ -9,12 +10,14 @@ export const RolesPage = () => {
   const [loading, setLoading] = useState(true);
   const [editingId, setEditingId] = useState(null);
   const [editingName, setEditingName] = useState("");
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+  const [rolToDelete, setRolToDelete] = useState(null);
 
   // 🔹 Cargar roles existentes
   const fetchRoles = async () => {
     setLoading(true);
     try {
-      const res = await rolesAPI.list();
+      const res = await RolService.listRoles();
       setRoles(res.data);
     } catch (err) {
       console.error("Error al cargar roles:", err);
@@ -36,13 +39,14 @@ export const RolesPage = () => {
     }
 
     try {
-      const res = await rolesAPI.create({ nombre: nuevoRol });
+      await RolService.createRol({ nombre: nuevoRol });
       toast.success("Rol creado correctamente ✅");
-      setRoles([...roles, res.data]);
+      await fetchRoles();
       setNuevoRol("");
     } catch (err) {
       console.error("Error al crear rol:", err);
-      toast.error("Error al crear el rol ❌");
+      const errorMessage = err.response?.data?.error || "Error al crear el rol";
+      toast.error(`Error: ${errorMessage} ❌`);
     }
   };
 
@@ -80,18 +84,30 @@ export const RolesPage = () => {
     setEditingName("");
   };
 
-  // 🔹 Eliminar rol
-  const handleDelete = async (id) => {
-    if (!confirm("¿Estás seguro de que deseas eliminar este rol?")) return;
+  // 🔹 Mostrar confirmación de eliminación
+  const handleDeleteClick = (rol) => {
+    setRolToDelete(rol);
+    setShowConfirmDialog(true);
+  };
 
+  // 🔹 Confirmar eliminación
+  const confirmDelete = async () => {
     try {
-      await rolesAPI.delete(id);
-      setRoles(roles.filter((rol) => rol.id !== id));
+      await RolService.deleteRol(rolToDelete.id);
       toast.success("Rol eliminado correctamente ✅");
+      await fetchRoles();
+      setShowConfirmDialog(false);
+      setRolToDelete(null);
     } catch (err) {
       console.error("Error al eliminar rol:", err);
       toast.error("Error al eliminar el rol ❌");
     }
+  };
+
+  // 🔹 Cancelar eliminación
+  const cancelDelete = () => {
+    setShowConfirmDialog(false);
+    setRolToDelete(null);
   };
 
   return (
@@ -171,8 +187,9 @@ export const RolesPage = () => {
                         <FaEdit />
                       </button>
                       <button
-                        onClick={() => handleDelete(rol.id)}
+                        onClick={() => handleDeleteClick(rol)}
                         className="text-red-600 hover:text-red-800"
+                        title="Eliminar"
                       >
                         <FaTrash />
                       </button>
@@ -184,6 +201,15 @@ export const RolesPage = () => {
           </tbody>
         </table>
       )}
+
+      {/* 🔹 Diálogo de Confirmación */}
+      <ConfirmDialog
+        isOpen={showConfirmDialog}
+        title="Confirmar Eliminación"
+        message={`¿Está seguro que desea eliminar el rol "${rolToDelete?.nombre}"? Esta acción no se puede deshacer.`}
+        onConfirm={confirmDelete}
+        onCancel={cancelDelete}
+      />
     </div>
   );
 };

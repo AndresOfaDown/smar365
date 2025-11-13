@@ -2,7 +2,9 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { FaSearch, FaSignOutAlt, FaUser, FaShoppingCart } from "react-icons/fa";
-import { productosAPI, categoriasAPI, marcasAPI } from "../../../../data/sources/api";
+import * as ProductoService from "../../../../Services/ProductoService";
+import * as CategoriaService from "../../../../Services/CategoriaService";
+import * as MarcaService from "../../../../Services/MarcaService";
 import { ProductCard } from "../components/ProductCard";
 
 export const HomeCliente = () => {
@@ -32,9 +34,9 @@ export const HomeCliente = () => {
     setLoading(true);
     try {
       const [productosRes, categoriasRes, marcasRes] = await Promise.all([
-        productosAPI.list(),
-        categoriasAPI.list(),
-        marcasAPI.list(),
+        ProductoService.listProductos(),
+        CategoriaService.listCategorias(),
+        MarcaService.listMarcas(),
       ]);
       setProductos(productosRes.data || []);
       setCategorias(categoriasRes.data || []);

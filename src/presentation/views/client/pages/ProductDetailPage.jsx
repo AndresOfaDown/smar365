@@ -11,7 +11,7 @@ import {
   FaTruck,
   FaShieldAlt
 } from 'react-icons/fa';
-import { productosAPI } from '../../../../data/sources/api';
+import * as ProductoService from '../../../../Services/ProductoService';
 import { useCart } from '../context/CartContext';
 import { ProductCard } from '../components/ProductCard';
 
@@ -31,8 +31,8 @@ export const ProductDetailPage = () => {
       setLoading(true);
       try {
         const [productoRes, recomendacionesRes] = await Promise.all([
-          productosAPI.get(id),
-          productosAPI.recomendaciones(id).catch(() => ({ data: [] }))
+          ProductoService.getProducto(id),
+          ProductoService.recomendaciones(id).catch(() => ({ data: [] }))
         ]);
         setProducto(productoRes.data);
         setRecomendaciones(recomendacionesRes.data || []);

@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import { FaCheckSquare, FaPlus } from "react-icons/fa";
-import { rolesAPI, permisosAPI } from "../../../data/sources/api";
+import * as RolService from "../../../Services/RolService";
+import * as PermisoService from "../../../Services/PermisoService";
 
 export const PermisosPage = () => {
   const [roles, setRoles] = useState([]);
@@ -13,7 +14,7 @@ export const PermisosPage = () => {
   // 🔹 Cargar roles
   const fetchRoles = async () => {
     try {
-      const res = await rolesAPI.list();
+      const res = await RolService.listRoles();
       setRoles(res.data);
     } catch (err) {
       toast.error("Error al cargar roles ❌");
@@ -23,7 +24,7 @@ export const PermisosPage = () => {
   // 🔹 Cargar todos los permisos
   const fetchPermisos = async () => {
     try {
-      const res = await permisosAPI.list();
+      const res = await PermisoService.listPermisos();
       setPermisos(res.data);
     } catch (err) {
       toast.error("Error al cargar permisos ❌");
@@ -33,7 +34,7 @@ export const PermisosPage = () => {
   // 🔹 Cargar permisos del rol seleccionado
   const fetchPermisosPorRol = async (rolId) => {
     try {
-      const res = await permisosAPI.getByRole(rolId);
+      const res = await PermisoService.getPermisosByRole(rolId);
       setAsignaciones(res.data);
     } catch (err) {
       toast.error("Error al obtener permisos del rol ❌");
@@ -56,12 +57,14 @@ export const PermisosPage = () => {
       return;
     }
     try {
-      await permisosAPI.create({ nombre: nuevoPermiso });
+      await PermisoService.createPermiso({ nombre: nuevoPermiso });
       toast.success("Permiso creado correctamente ✅");
       setNuevoPermiso("");
-      fetchPermisos();
+      await fetchPermisos();
     } catch (err) {
-      toast.error("Error al crear permiso ❌");
+      console.error("Error al crear permiso:", err);
+      const errorMessage = err.response?.data?.error || "Error al crear permiso";
+      toast.error(`Error: ${errorMessage} ❌`);
     }
   };
 
@@ -73,11 +76,12 @@ export const PermisosPage = () => {
         permisos: [{ permiso_id: permisoId, estado: !estadoActual }],
       };
 
-      await permisosAPI.updateRolePermissions(payload);
+      await PermisoService.updateRolePermissions(payload);
 
-      toast.info("Estado del permiso actualizado ✅");
-      fetchPermisosPorRol(rolSeleccionado);
+      toast.success("Estado del permiso actualizado ✅");
+      await fetchPermisosPorRol(rolSeleccionado);
     } catch (err) {
+      console.error("Error al actualizar permiso:", err);
       toast.error("Error al actualizar permiso ❌");
     }
   };

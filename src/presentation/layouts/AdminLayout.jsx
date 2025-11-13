@@ -16,7 +16,7 @@ export const AdminLayout = () => {
     }
 
     const rol = (usuario.rol || "").toUpperCase();
-    if (!["ADMIN", "ADMINISTRADOR", "SUPERUSER"].includes(rol)) {
+    if (!["ADMIN", "ADMINISTRADOR", "SUPERUSER","administrador"].includes(rol)) {
       navigate("/");
     }
   }, [navigate]);
@@ -50,6 +50,12 @@ export const AdminLayout = () => {
           >
             <FaHome className="inline mr-2" /> Dashboard
           </NavLink>
+
+          {/* 👥 GESTIÓN DE USUARIOS Y SEGURIDAD */}
+          <div className="pt-4 pb-2 px-3 text-xs font-semibold text-blue-200 uppercase tracking-wider">
+            Usuarios y Seguridad
+          </div>
+
           <NavLink
             to="/admin/usuarios"
             className={({ isActive }) =>
@@ -60,55 +66,43 @@ export const AdminLayout = () => {
           >
             <FaUsers className="inline mr-2" /> Usuarios
           </NavLink>
+
           <NavLink
-          to="/admin/roles"
-           className={({ isActive }) =>
-            `block px-3 py-2 rounded-md hover:bg-blue-600 ${
-           isActive ? "bg-blue-600" :""
-            }`
-          }
+            to="/admin/roles"
+            className={({ isActive }) =>
+              `block px-3 py-2 rounded-md hover:bg-blue-600 ${
+                isActive ? "bg-blue-600" : ""
+              }`
+            }
           >
             <FaUsers className="inline mr-2" /> Roles
           </NavLink>
+
           <NavLink
-          to="/admin/permisos"
-           className={({ isActive }) =>
-            `block px-3 py-2 rounded-md hover:bg-blue-600 ${
-           isActive ? "bg-blue-600" :""
-            }`
-          }
+            to="/admin/bitacora"
+            className={({ isActive }) =>
+              `block px-3 py-2 rounded-md hover:bg-blue-600 ${
+                isActive ? "bg-blue-600" : ""
+              }`
+            }
           >
-            <FaUsers className="inline mr-2" /> Permisos
+            <FaSearch className="inline mr-2" /> Bitácora
           </NavLink>
+
+          {/* 📦 GESTIÓN DE INFORMACIÓN COMERCIAL */}
+          <div className="pt-4 pb-2 px-3 text-xs font-semibold text-blue-200 uppercase tracking-wider">
+            Información Comercial
+          </div>
+
           <NavLink
-          to="/admin/clientes"
-           className={({ isActive }) =>
-            `block px-3 py-2 rounded-md hover:bg-blue-600 ${
-           isActive ? "bg-blue-600" :""
-            }`
-          }
+            to="/admin/clientes"
+            className={({ isActive }) =>
+              `block px-3 py-2 rounded-md hover:bg-blue-600 ${
+                isActive ? "bg-blue-600" : ""
+              }`
+            }
           >
             <FaUsers className="inline mr-2" /> Clientes
-          </NavLink>
-          <NavLink
-            to="/admin/categorias"
-            className={({ isActive }) =>
-              `block px-3 py-2 rounded-md hover:bg-blue-600 ${
-                isActive ? "bg-blue-600" : ""
-              }`
-            }
-          >
-            <FaBox className="inline mr-2" /> Categorias
-          </NavLink>
-          <NavLink
-            to="/admin/crearproducto"
-            className={({ isActive }) =>
-              `block px-3 py-2 rounded-md hover:bg-blue-600 ${
-                isActive ? "bg-blue-600" : ""
-              }`
-            }
-          >
-            <FaBox className="inline mr-2" /> Crear Productos
           </NavLink>
 
           <NavLink
@@ -123,6 +117,17 @@ export const AdminLayout = () => {
           </NavLink>
 
           <NavLink
+            to="/admin/categorias"
+            className={({ isActive }) =>
+              `block px-3 py-2 rounded-md hover:bg-blue-600 ${
+                isActive ? "bg-blue-600" : ""
+              }`
+            }
+          >
+            <FaBox className="inline mr-2" /> Categorías
+          </NavLink>
+
+          <NavLink
             to="/admin/inventario"
             className={({ isActive }) =>
               `block px-3 py-2 rounded-md hover:bg-blue-600 ${
@@ -134,14 +139,14 @@ export const AdminLayout = () => {
           </NavLink>
 
           <NavLink
-            to="/admin/productoscondescuento"
+            to="/admin/marca"
             className={({ isActive }) =>
               `block px-3 py-2 rounded-md hover:bg-blue-600 ${
                 isActive ? "bg-blue-600" : ""
               }`
             }
           >
-            <FaBox className="inline mr-2" /> Productos Con Descuento
+            <FaBox className="inline mr-2" /> Marcas
           </NavLink>
 
           <NavLink
@@ -152,7 +157,7 @@ export const AdminLayout = () => {
               }`
             }
           >
-            <FaBox className="inline mr-2" /> Descuentos
+            <FaShoppingCart className="inline mr-2" /> Descuentos
           </NavLink>
 
           <NavLink
@@ -163,64 +168,15 @@ export const AdminLayout = () => {
               }`
             }
           >
-            <FaBox className="inline mr-2" /> Garantias
+            <FaBox className="inline mr-2" /> Garantías
           </NavLink>
+
+          {/* 📊 REPORTES DINÁMICOS */}
+          <div className="pt-4 pb-2 px-3 text-xs font-semibold text-blue-200 uppercase tracking-wider">
+            Reportes Dinámicos
+          </div>
 
           <NavLink
-            to="/admin/productossingarantias"
-            className={({ isActive }) =>
-              `block px-3 py-2 rounded-md hover:bg-blue-600 ${
-                isActive ? "bg-blue-600" : ""
-              }`
-            }
-          >
-            <FaBox className="inline mr-2" /> Productos sin garantias
-          </NavLink>
-
-          <NavLink
-            to="/admin/marca"
-            className={({ isActive }) =>
-              `block px-3 py-2 rounded-md hover:bg-blue-600 ${
-                isActive ? "bg-blue-600" : ""
-              }`
-            }
-          >
-            <FaBell className="inline mr-2" /> Marca
-          </NavLink>
-          <NavLink
-            to="/admin/notificaciones"
-            className={({ isActive }) =>
-              `block px-3 py-2 rounded-md hover:bg-blue-600 ${
-                isActive ? "bg-blue-600" : ""
-              }`
-            }
-          >
-            <FaBell className="inline mr-2" /> Notificaciones
-          </NavLink>
-
-            <NavLink
-            to="/admin/tecnicos"
-            className={({ isActive }) =>
-              `block px-3 py-2 rounded-md hover:bg-blue-600 ${
-                isActive ? "bg-blue-600" : ""
-              }`
-            }
-          >
-            <FaBell className="inline mr-2" /> Tecnicos
-          </NavLink>
-
-          <NavLink
-            to="/admin/mantenimientos"
-            className={({ isActive }) =>
-              `block px-3 py-2 rounded-md hover:bg-blue-600 ${
-                isActive ? "bg-blue-600" : ""
-              }`
-            }
-          >
-            <FaBell className="inline mr-2" /> Mantenimientos
-          </NavLink>
-
-            <NavLink
             to="/admin/reportes"
             className={({ isActive }) =>
               `block px-3 py-2 rounded-md hover:bg-blue-600 ${
@@ -228,8 +184,13 @@ export const AdminLayout = () => {
               }`
             }
           >
-            <FaBell className="inline mr-2" /> Reportes
+            <FaSearch className="inline mr-2" /> Generar Reportes
           </NavLink>
+
+          {/* 🤖 PREDICCIONES CON ML */}
+          <div className="pt-4 pb-2 px-3 text-xs font-semibold text-blue-200 uppercase tracking-wider">
+            Machine Learning
+          </div>
 
           <NavLink
             to="/admin/predicciones"
@@ -239,20 +200,10 @@ export const AdminLayout = () => {
               }`
             }
           >
-            <FaBell className="inline mr-2" /> Predicciones
+            <FaSearch className="inline mr-2" /> Predicciones de Ventas
           </NavLink>
 
         </nav>
-        <NavLink
-          to="/admin/bitacora"
-          className={({ isActive }) =>
-           `block px-3 py-2 rounded-md hover:bg-blue-600 ${
-             isActive ? "bg-blue-600" : ""
-          }`
-        }
-       >
-       <FaBell className="inline mr-2" /> Bitácora
-      </NavLink>
 
 
         {/* 🔹 Botón de cerrar sesión */}

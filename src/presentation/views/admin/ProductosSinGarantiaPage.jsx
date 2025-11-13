@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { toast } from "react-toastify";
 import { Link } from "react-router-dom";
-import { api } from "../../../data/sources/api";
+import * as ProductoService from "../../../Services/ProductoService";
 
 export const ProductosSinGarantiaPage = () => {
   const [productos, setProductos] = useState([]);
@@ -11,9 +11,7 @@ export const ProductosSinGarantiaPage = () => {
     const fetchProductosSinGarantia = async () => {
       setLoading(true);
       try {
-        const res = await api.get(
-          "productos/sin-garantia/"
-        );
+        const res = await ProductoService.sinGarantia();
         setProductos(res.data);
       } catch (err) {
         console.error("Error al cargar productos:", err);

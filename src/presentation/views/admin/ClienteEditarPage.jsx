@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { toast } from "react-toastify";
 import { useParams, useNavigate } from "react-router-dom";
-import { clientesAPI } from "../../../data/sources/api";
+import * as ClienteService from "../../../Services/ClienteService";
 
 export const ClienteEditarPage = () => {
   const { id } = useParams();
@@ -24,7 +24,7 @@ export const ClienteEditarPage = () => {
   const fetchCliente = async () => {
     setLoading(true);
     try {
-      const res = await clientesAPI.get(id);
+      const res = await ClienteService.getCliente(id);
 
       setFormData({
         nombre: res.data.nombre || "",
@@ -50,7 +50,7 @@ export const ClienteEditarPage = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await clientesAPI.update(id, formData);
+      await ClienteService.updateCliente(id, formData);
       toast.success("Cliente actualizado correctamente ✅");
       navigate("/admin/clientes");
     } catch (err) {
@@ -62,7 +62,7 @@ export const ClienteEditarPage = () => {
   // Eliminar Cliente
   const handleDelete = async () => {
     try {
-      await clientesAPI.delete(id);
+      await ClienteService.deleteCliente(id);
       toast.success("Cliente eliminado correctamente ✅");
       navigate("/admin/clientes");
     } catch (err) {

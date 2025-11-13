@@ -1,7 +1,7 @@
 import { useState } from "react";
-import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
+import * as AuthService from "../../../Services/AuthService";
 
 export const LoginModal = ({ onClose, show }) => {
   if (!show) return null;
@@ -19,10 +19,9 @@ export const LoginModal = ({ onClose, show }) => {
     e.preventDefault();
     setLoading(true);
     try {
-      const res = await axios.post("http://127.0.0.1:8000/api/login/", formData);
+      const res = await AuthService.login(formData);
 
       // Guardar tokens y usuario
-      //localStorage.setItem("token", response.data.access);
       localStorage.setItem("access", res.data.access);
       localStorage.setItem("refresh", res.data.refresh);
       localStorage.setItem("usuario", JSON.stringify(res.data.usuario));
@@ -35,7 +34,7 @@ export const LoginModal = ({ onClose, show }) => {
       setTimeout(() => {
   const rolMayus = (res.data.usuario?.rol || "").toUpperCase();
 
-  if (["ADMIN", "ADMINISTRADOR", "SUPERUSER"].includes(rolMayus)) {
+  if (["ADMIN", "ADMINISTRADOR", "SUPERUSER","Administrador"].includes(rolMayus)) {
     navigate("/admin/dashboard");
   } else if (["CLIENTE", "USER", "USUARIO"].includes(rolMayus)) {
     navigate("/cliente/home");

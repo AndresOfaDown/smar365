@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { toast } from "react-toastify";
 import { FaPlus, FaTrash, FaEdit } from "react-icons/fa";
-import { descuentosAPI } from "../../../data/sources/api";
+import * as DescuentoService from "../../../Services/DescuentoService";
 
 export const DescuentosPage = () => {
   const [descuentos, setDescuentos] = useState([]);
@@ -20,7 +20,7 @@ export const DescuentosPage = () => {
   const fetchDescuentos = async () => {
     setLoading(true);
     try {
-      const res = await descuentosAPI.list();
+      const res = await DescuentoService.listDescuentos();
       setDescuentos(res.data);
     } catch (err) {
       console.error("Error al cargar descuentos:", err);
@@ -60,7 +60,7 @@ export const DescuentosPage = () => {
     try {
       if (editingId) {
         // Actualizar
-        await descuentosAPI.update(editingId, dataAEnviar);
+        await DescuentoService.updateDescuento(editingId, dataAEnviar);
         setDescuentos(
           descuentos.map((d) =>
             d.id === editingId ? { ...d, ...dataAEnviar } : d
@@ -70,7 +70,7 @@ export const DescuentosPage = () => {
         setEditingId(null);
       } else {
         // Crear
-        const res = await descuentosAPI.create(dataAEnviar);
+        const res = await DescuentoService.createDescuento(dataAEnviar);
         setDescuentos([...descuentos, res.data]);
         toast.success("Descuento creado correctamente ✅");
       }
@@ -117,7 +117,7 @@ export const DescuentosPage = () => {
     if (!confirm("¿Estás seguro de que deseas eliminar este descuento?")) return;
     
     try {
-      await descuentosAPI.delete(id);
+      await DescuentoService.deleteDescuento(id);
       setDescuentos(descuentos.filter((d) => d.id !== id));
       toast.success("Descuento eliminado correctamente ✅");
     } catch (err) {

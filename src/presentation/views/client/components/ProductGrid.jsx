@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import { toast } from 'react-toastify';
-import { productosAPI, categoriasAPI, marcasAPI } from '../../../../data/sources/api';
+import * as ProductoService from '../../../../Services/ProductoService';
+import * as CategoriaService from '../../../../Services/CategoriaService';
+import * as MarcaService from '../../../../Services/MarcaService';
 import { ProductCard } from './ProductCard';
 import { FaBox } from 'react-icons/fa';
 
@@ -15,9 +17,9 @@ export const ProductGrid = () => {
       setLoading(true);
       try {
         const [productosRes, categoriasRes, marcasRes] = await Promise.all([
-          productosAPI.list(),
-          categoriasAPI.list(),
-          marcasAPI.list(),
+          ProductoService.listProductos(),
+          CategoriaService.listCategorias(),
+          MarcaService.listMarcas(),
         ]);
         setProductos(productosRes.data);
         setCategorias(categoriasRes.data);

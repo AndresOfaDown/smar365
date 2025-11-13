@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { toast } from "react-toastify";
 import { useParams, Link } from "react-router-dom";
 import { FaEdit, FaHardHat } from "react-icons/fa";
-import { tecnicosAPI } from "../../../data/sources/api";
+import * as TecnicoService from "../../../Services/TecnicoService";
 
 export const TecnicoDetallePage = () => {
   const { id } = useParams();
@@ -14,7 +14,7 @@ export const TecnicoDetallePage = () => {
     const fetchTecnico = async () => {
       setLoading(true);
       try {
-        const res = await tecnicosAPI.get(id);
+        const res = await TecnicoService.getTecnico(id);
         setTecnico(res.data);
       } catch (err) {
         console.error("Error al cargar técnico:", err);

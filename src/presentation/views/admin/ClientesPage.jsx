@@ -2,7 +2,8 @@ import React, { useState, useEffect } from "react";
 import { toast } from "react-toastify";
 import { Link } from "react-router-dom";
 import { FaUsers, FaPlus, FaSearch, FaUser } from "react-icons/fa";
-import { clientesAPI } from "../../../data/sources/api";
+import * as ClienteService from "../../../Services/ClienteService";
+import api from "../../../api/axiosConfig";
 import { ImageUploader } from "../../../components/ImageUploader";
 
 export const ClientesPage = () => {
@@ -36,7 +37,7 @@ export const ClientesPage = () => {
   const fetchClientes = async () => {
     setLoading(true);
     try {
-      const res = await clientesAPI.list();
+      const res = await ClienteService.listClientes();
       setClientes(res.data);
     } catch (err) {
       console.error("Error al cargar clientes:", err);
@@ -60,7 +61,7 @@ export const ClientesPage = () => {
     }
 
     try {
-      const res = await clientesAPI.create(form);
+      const res = await api.post("usuarios/clientes/crear/", form); // Usando API directa (falta método en ClienteService)
       setClientes([...clientes, res.data]);
       toast.success("Cliente creado correctamente ✅");
       setForm({ nombre: "", apellido: "", email: "", telefono: "", foto: "" });

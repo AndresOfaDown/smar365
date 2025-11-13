@@ -13,7 +13,7 @@ import {
   FaPhone,
   FaEnvelope
 } from 'react-icons/fa';
-import { ventasAPI } from '../../../../data/sources/api';
+import * as VentaService from '../../../../Services/VentaService';
 
 export const OrderDetailPage = () => {
   const { id } = useParams();
@@ -25,7 +25,7 @@ export const OrderDetailPage = () => {
     const cargarOrden = async () => {
       setLoading(true);
       try {
-        const response = await ventasAPI.notaDetalle(id);
+        const response = await VentaService.getNotaDetalle(id);
         setOrden(response.data);
       } catch (err) {
         console.error('Error al cargar orden:', err);
@@ -40,7 +40,7 @@ export const OrderDetailPage = () => {
 
   const handleDescargarPDF = async () => {
     try {
-      const response = await ventasAPI.notaPDF(id);
+      const response = await VentaService.getNotaPDF(id);
       const url = window.URL.createObjectURL(new Blob([response.data], { type: 'application/pdf' }));
       const link = document.createElement('a');
       link.href = url;
