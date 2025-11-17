@@ -71,7 +71,7 @@ Puedo ayudarte a:
             for (let i = 0; i < cantidad; i++) {
               await addToCart(producto);
             }
-            toast.success(`${cantidad} ${producto.nombre}(s) agregado(s) al carrito ✅`);
+            toast.success(` al carrito ✅ ${cantidad} ${producto.nombre}`);
             return botResponse.replace(/AGREGAR:[^:]+:\d+/, '').trim() || 
                    `He agregado ${cantidad} ${producto.nombre}(s) a tu carrito. ¿Necesitas algo más?`;
           } catch {

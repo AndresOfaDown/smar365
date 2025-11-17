@@ -23,7 +23,7 @@ export const ProductCard = ({ producto, categoria, marca }) => {
     
     try {
       await addToCart(producto);
-      toast.success(`${producto.nombre} agregado al carrito ✅`);
+      toast.success(`agregado al carrito ${producto.nombre}`);
     } catch (error) {
       console.error('Error al agregar producto:', error);
       toast.error('Error al agregar al carrito ❌');
@@ -37,8 +37,8 @@ export const ProductCard = ({ producto, categoria, marca }) => {
   const imagenUrl = producto?.imagen || producto?.dir_img || null;
 
   return (
-    <Link
-      to={`/cliente/productos/${producto.id}`}
+    <Link 
+     to={`/cliente/productos/${producto.id}`}
       className="bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-200 overflow-hidden group cursor-pointer block"
     >
       {/* Imagen */}
@@ -116,7 +116,7 @@ export const ProductCard = ({ producto, categoria, marca }) => {
             onClick={handleAddToCart}
             className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-lg text-xs font-semibold transition transform hover:scale-105"
           >
-            Agregar
+            Agregar Producto
           </button>
         </div>
       </div>
